@@ -2,6 +2,7 @@ use std::env;
 extern crate getopts;
 use getopts::Options;
 
+mod inout;
 mod cards;
 mod players;
 
@@ -51,5 +52,9 @@ fn main() {
 
     // setup
     let players = players::create_players(n_players, start_cash);
-    println!("{:?}", players[0])
+    // first hand initialisation
+    println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
+    let dealer: usize = inout::ask_player_number(&players);
+    let player_small_blind: usize = players::next_active_player(&players, dealer);
+    let player_big_blind: usize = players::next_active_player(&players, player_small_blind);
 }
