@@ -2,6 +2,7 @@ use std::collections::LinkedList;
 use crate::cards;
 
 // on ne manipule plus de liste chainée de joueurs (contrairement à la version C), mais un vector (tableau) de joueurs
+// TODO: process::exit plutôt que std::process::exit
 #[derive(Debug)]
 pub struct Player {
     number: u32,

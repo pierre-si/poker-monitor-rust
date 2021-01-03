@@ -1,6 +1,7 @@
 use std::io;
 use crate::players;
 
+//TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
 pub fn ask_player_number(players: &Vec<players::Player>) -> usize {
     let mut input = String::new();
     let mut number: usize;

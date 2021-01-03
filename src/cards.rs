@@ -1,6 +1,8 @@
 // usize / isize when the variable is related to memory size (size of an object, index of a vector)
 // i32 / u64 / … when the variable is a number
 
+// TODO : utiliser impl pour les méthodes de struct (ou enum ou trait) plutôt que des fonctions à part.
+
 #[derive(Debug)]
 pub struct Deck {
     cards_number: usize,
@@ -18,4 +20,10 @@ pub fn create_deck(cards_number: usize) -> Deck {
         values: vec![0; cards_number],
         suits: vec![0; cards_number]
     }
+}
+
+pub fn reinitialise_cards(deck: &mut Deck) {
+    deck.known_cards_number = 0;
+    for value in &mut deck.values { *value = 0; }
+    for suit in &mut deck.suits { *suit = 0; }
 }
