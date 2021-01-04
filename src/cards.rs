@@ -11,7 +11,7 @@ pub struct Deck {
 }
 
 impl Deck {
-    pub fn create_deck(cards_number: usize) -> Deck {
+    pub fn new(cards_number: usize) -> Deck {
         Deck {
             cards_number: cards_number,
             known_cards_number: 0,

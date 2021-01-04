@@ -60,11 +60,12 @@ fn main() {
     let mut small_blind: u32 = game_settings.first_blind;
     // variables to reinitialize at the beginning of each hand
     let (mut pot, mut round): (u32, u32);
-    let mut table = cards::Deck::create_deck(5);
+    let mut table = cards::Deck::new(5);
     // variables to reinitialize at the beginning of each round
     let (mut to_bet, mut raise_value): (u32, u32);
     // auxiliary variables
     let (mut player_n, mut n_min_players): (u32, u32);
+    let current_player: usize;
 
     // setup
     let mut players = players::create_players(game_settings.n_players, game_settings.start_cash);
@@ -91,7 +92,7 @@ fn main() {
             inout::ask_cards(&mut players[0].deck, 2);
             
         }
-        
+      
         if true {break;}
     }
 }
