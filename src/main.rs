@@ -65,16 +65,16 @@ fn main() {
     let (mut to_bet, mut raise_value): (u32, u32);
     // auxiliary variables
     let (mut player_n, mut n_min_players): (u32, u32);
-    let current_player: usize;
+    let mut current_player: usize;
 
     // setup
     let mut players = players::create_players(game_settings.n_players, game_settings.start_cash);
     // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
     println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
-    let dealer: usize = inout::ask_player_number(&players);
-    let player_small_blind: usize = players::next_active_player(&players, dealer);
-    let player_big_blind: usize = players::next_active_player(&players, player_small_blind);
+    let mut dealer: usize = inout::ask_player_number(&players);
+    let mut player_small_blind: usize = players::next_active_player(&players, dealer);
+    let mut player_big_blind: usize = players::next_active_player(&players, player_small_blind);
 
     // même jeu
     loop {
@@ -92,7 +92,27 @@ fn main() {
             inout::ask_cards(&mut players[0].deck, 2);
             
         }
-      
+		// lorsqu'il n'y a plus que 2 joueurs en lice (« Heads-up »), le dealer est small blind
+		// il est nécessaire de recalculer psmallBlind au cas où le tour précédent comptait 3 joueurs et s'est achevé par
+		// la défaite du big blind.
+        if players::active_players_count(&players) == 2 {
+            player_small_blind = players::next_active_player(&players, player_big_blind);
+            dealer = player_small_blind;
+            current_player = dealer;
+        }
+
+        if players[player_small_blind].state != 'o' {
+			println!("SMALL BLIND : JOUEUR {}   BET {:5}\n", player_small_blind, small_blind);
+            pot += players[player_small_blind].make_bet(small_blind);
+        }
+        
+        println!("BIG BLIND   : JOUEUR {}   BET {:5}\n", player_big_blind, small_blind*2);
+		pot += players[player_big_blind].make_bet(small_blind*2);
+
+        to_bet = small_blind*2;
+        raise_value = small_blind*2;
+        current_player = players::next_active_player(&players, player_big_blind);
+
         if true {break;}
     }
 }
