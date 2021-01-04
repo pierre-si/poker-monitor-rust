@@ -15,15 +15,17 @@ pub struct Player {
     raises_history: [usize; 7] // nombre de raises effectués au cours du tour (0 que des check ou call), -1 fold (ajouté en plus de l'historique du tour) => taille max : 5
 }
 
-fn create_player(number: u32, start_cash: u32) -> Player {
-    Player {
-        number: number,
-        cash: start_cash,
-        turn_bet: 0,
-        total_bet: 0,
-        state: 'i',
-        deck: cards::Deck::new(2),
-        raises_history: [0; 7]
+impl Player {
+    pub fn new(number: u32, start_cash: u32) -> Player {
+        Player {
+            number: number,
+            cash: start_cash,
+            turn_bet: 0,
+            total_bet: 0,
+            state: 'i',
+            deck: cards::Deck::new(2),
+            raises_history: [0; 7]
+        }
     }
 }
 
@@ -35,7 +37,7 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
 
     let mut players: Vec<Player> = vec![];
     for i in 0..number_of_players {
-        players.push(create_player(i, start_cash))
+        players.push(Player::new(i, start_cash))
     }
     players
 }
