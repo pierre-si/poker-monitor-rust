@@ -140,7 +140,13 @@ fn main() {
 			// le premier joueur actif après le dealer commence le tour
             current_player = players::next_active_player(&players, dealer);
             if players::active_players_count(&players) <= 1 || round_n >= 5 { break; } 
-		}
-        if true {break;}
+        }
+        pot_repartition();
+        players::reset_hand(&mut players);
+        dealer = player_small_blind;
+        player_small_blind = player_big_blind;
+        player_big_blind = players::next_active_player(&players, player_big_blind);
+        if hand_n % game_settings.blinds_raise_interval == 0 { small_blind *= 2; }
+        if players::active_players_count(&players) <= 1 { break; }
     }
 }

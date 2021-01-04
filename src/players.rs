@@ -119,7 +119,18 @@ pub fn reset_round(players: &mut Vec<Player>) {
         player.round_bet = 0;
     }
 }
-pub fn reset_hand(players: &mut Vec<Player>) {}
+pub fn reset_hand(players: &mut Vec<Player>) {
+    for player in players {
+        player.total_bet = 0;
+        player.deck.reset_cards();
+        if player.cash <= 0 {
+            player.cash = 0;
+            player.state = 'o';
+        } else {
+            player.state = 'i';
+        }
+    }
+}
 
 pub fn active_players_count(players: &Vec<Player>) -> u32 {
     let mut number = 0;
