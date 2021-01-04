@@ -2,6 +2,13 @@ use std::io;
 use crate::players;
 use crate::cards;
 
+//TODO mettre dans players.rs
+pub fn print_players(players: &Vec<players::Player>){
+    for player in players {
+        println!("Joueur numéro {} possède {} dollars et a pour état {}", player.number, player.cash, player.state);
+    }
+}
+
 //TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
 pub fn ask_player_number(players: &Vec<players::Player>) -> usize {
     let mut input = String::new();
@@ -16,6 +23,31 @@ pub fn ask_player_number(players: &Vec<players::Player>) -> usize {
     return number;
 }
 
+pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, raise_value: u32) -> char {
+	if player == 0 {
+		println!("========= VOUS ARGENT {:5} =========\n", players[player].cash);
+	} else{
+		println!("======= JOUEUR {} ARGENT {:5} =======\n", player, players[player].cash);
+    }
+    println!("MISÉ {:5}  CALL   {:5}  RAISE {:5}\n", players[player].round_bet, to_bet - players[player].round_bet, to_bet - players[player].round_bet + raise_value);
+
+    let mut input = String::new();
+    let mut action: char;
+	loop{
+		println!("ACTION ? ");
+	    input.clear();
+        io::stdin().read_line(&mut input).expect("failed to read line");
+        action = input.chars().next().unwrap();
+        match action {
+            'j' => print_players(players),
+            'c' | 'r' | 'b' | 'f' | 'a' => break,
+            _ => continue,
+        }
+	}
+	action
+}
+
+// créer une méthode add_card(value, suit) ou set_card(value, suit, index) dans deck qui vérifie que le nombre de carte ne dépasse pas la limite.
 pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) {
     let mut input = String::new();
 

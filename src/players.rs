@@ -4,10 +4,10 @@ use crate::cards;
 // TODO: process::exit plutôt que std::process::exit
 #[derive(Debug)]
 pub struct Player {
-    number: u32,
-    cash: u32,
+    pub number: u32,
+    pub cash: u32,
     pub round_bet: u32,
-    total_bet: u32,
+    pub total_bet: u32,
     pub state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
 
     pub deck: cards::Deck,
