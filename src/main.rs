@@ -46,8 +46,12 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
+fn action(players: &mut Vec<players::Player>, player: usize, pot: &mut u32, to_bet: &mut u32, raise_value: &mut u32) {
+
+}
+
 fn main() {
-    const N_CARDS_TO_DEAL: [u8; 4] = [0, 3, 1, 1];
+    const N_CARDS_TO_DEAL: [usize; 4] = [0, 3, 1, 1];
     let args: Vec<String> = env::args().collect();
 
     let game_settings = parse_command(&args);
@@ -59,12 +63,12 @@ fn main() {
     let mut hand_n: u32 = 0;
     let mut small_blind: u32 = game_settings.first_blind;
     // variables to reinitialize at the beginning of each hand
-    let (mut pot, mut round): (u32, u32);
+    let (mut pot, mut round_n): (u32, usize);
     let mut table = cards::Deck::new(5);
     // variables to reinitialize at the beginning of each round
     let (mut to_bet, mut raise_value): (u32, u32);
     // auxiliary variables
-    let (mut player_n, mut n_min_players): (u32, u32);
+    let (mut player_n, mut min_players_count): (u32, u32);
     let mut current_player: usize;
 
     // setup
@@ -82,7 +86,7 @@ fn main() {
         hand_n += 1;
         // Réinitialisation des variables de la main
         pot = 0;
-        round = 1;
+        round_n = 1;
         table.reset_cards();
         println!("{:?}", table);
         // Initialisation du premier tour
@@ -113,6 +117,32 @@ fn main() {
         raise_value = small_blind*2;
         current_player = players::next_active_player(&players, player_big_blind);
 
+        // same hand
+        loop{
+            println!("\n*** Main numéro {:2}  Tour numéro {} ***\n", hand_n, round_n);
+            inout::ask_cards(&mut table, N_CARDS_TO_DEAL[round_n-1]);
+            
+			min_players_count = players::active_players_count(&players);
+            player_n = 0;
+            // same round
+			loop{
+                action(&mut players, current_player, &mut pot, &mut to_bet, &mut raise_value);
+                current_player = players::next_active_player(&players, current_player);
+                player_n += 1;
+                // les joueurs actifs au début du tour doivent jouer au moins une fois
+                if players[current_player].state != 'i' || (player_n >= min_players_count && players[current_player].round_bet == to_bet) {
+                    break;
+                }
+			}
+			// Préparation du tour suivant //
+            round_n += 1;
+			to_bet = 0;
+            raise_value = small_blind*2;
+            players::reset_round(&mut players);
+			// le premier joueur actif après le dealer commence le tour
+            current_player = players::next_active_player(&players, dealer);
+            if players::active_players_count(&players) <= 1 || round_n >= 5 { break; } 
+		}
         if true {break;}
     }
 }

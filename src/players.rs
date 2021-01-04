@@ -6,7 +6,7 @@ use crate::cards;
 pub struct Player {
     number: u32,
     cash: u32,
-    round_bet: u32,
+    pub round_bet: u32,
     total_bet: u32,
     pub state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
 
@@ -60,6 +60,9 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
     }
     players
 }
+
+pub fn reset_round(players: &mut Vec<Player>) {}
+pub fn reset_hand(players: &mut Vec<Player>) {}
 
 pub fn active_players_count(players: &Vec<Player>) -> u32 {
     let mut number = 0;
