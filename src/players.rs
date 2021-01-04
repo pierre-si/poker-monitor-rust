@@ -9,9 +9,9 @@ pub struct Player {
     cash: u32,
     turn_bet: u32,
     total_bet: u32,
-    state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
+    pub state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
 
-    deck: cards::Deck,
+    pub deck: cards::Deck,
     raises_history: [usize; 7] // nombre de raises effectués au cours du tour (0 que des check ou call), -1 fold (ajouté en plus de l'historique du tour) => taille max : 5
 }
 

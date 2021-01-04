@@ -67,7 +67,7 @@ fn main() {
     let (mut player_n, mut n_min_players): (u32, u32);
 
     // setup
-    let players = players::create_players(game_settings.n_players, game_settings.start_cash);
+    let mut players = players::create_players(game_settings.n_players, game_settings.start_cash);
     // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
     println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
@@ -85,11 +85,12 @@ fn main() {
         cards::reinitialise_cards(&mut table);
         println!("{:?}", table);
         // Initialisation du premier tour
-		println!("*** Main numéro {} Préparation   ***\n", hand_n);
-		/*if(trouverPJoueur(0, pdealer)->etat == 'i'){
-			printf("Vos cartes :\n");
-			demanderCartes(trouverPJoueur(0, pdealer)->cartes, 2);
-		}*/
+        println!("*** Main numéro {} Préparation   ***\n", hand_n);
+        if players[0].state == 'i' {
+            println!("Vos cartes :");
+            inout::ask_cards(&mut players[0].deck, 2);
+            
+        }
         
         if true {break;}
     }

@@ -5,11 +5,11 @@
 
 #[derive(Debug)]
 pub struct Deck {
-    cards_number: usize,
-    known_cards_number: u32,
+    pub cards_number: usize,
+    pub known_cards_number: usize,
 
-    values: Vec<u32>, // 0 indéterminé, 1 as, 2 deux, …, 10 dix, 11 valet, 12 dame, 13 roi, (14 as accessoirement)
-    suits: Vec<u32>, // 0 indéterminé, 1 trèfle, 2 carreau, 3 cœur, 4 pique.
+    pub values: Vec<u32>, // 0 indéterminé, 1 as, 2 deux, …, 10 dix, 11 valet, 12 dame, 13 roi, (14 as accessoirement)
+    pub suits: Vec<u32>, // 0 indéterminé, 1 trèfle, 2 carreau, 3 cœur, 4 pique.
 }
 
 pub fn create_deck(cards_number: usize) -> Deck {
