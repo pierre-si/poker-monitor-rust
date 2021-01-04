@@ -1,3 +1,4 @@
+use std::io;
 use crate::cards;
 
 // on ne manipule plus de liste chainée de joueurs (contrairement à la version C), mais un vector (tableau) de joueurs
@@ -24,6 +25,57 @@ impl Player {
             state: 'i',
             deck: cards::Deck::new(2),
             raises_history: [0; 7]
+        }
+    }
+
+    pub fn action(&mut self, action: char, pot: &mut u32, to_bet: &mut u32, raise_value: &mut u32) {
+        match action {
+            // CHECK or CALL
+            'c' => if self.round_bet < *to_bet {
+                println!("CALL {}", *to_bet - self.round_bet);
+                *pot += self.make_bet(*to_bet - self.round_bet);
+			}
+			else{
+				println!("CHECK\n");
+            }
+            // RAISE (predefined BET)
+            'r' => {
+                println!("BET {} ; RAISE {}", *to_bet+*raise_value-self.round_bet, *raise_value);
+    			*pot += self.make_bet(*to_bet+*raise_value-self.round_bet);
+                *to_bet += *raise_value;
+            }
+            // BET (custom BET)
+		    'b' => {
+                println!("AMOUNT ? ");
+                let mut input = String::new();
+			    input.clear();
+                io::stdin().read_line(&mut input).expect("failed to read line");
+                let bet_value = input.trim().parse().expect("Please type a number!");
+
+                // il doit y avoir un bogue, le montant réellement misé peut être inférieur au bet annoncé si l'utilisateur ne dispose pas assez d'argent
+                *raise_value = bet_value - (*to_bet - self.round_bet);
+                *to_bet += *raise_value;
+                *pot += self.make_bet(bet_value);
+				println!("BET {} ; RAISE {}", bet_value, *raise_value);
+            }
+            // FOLD
+            'f' => {
+                self.state = 'f';
+                println!("FOLD");
+            }
+            // ALL-IN
+		    'a' => {
+                if self.cash + self.round_bet > *to_bet {
+                    *raise_value = self.cash - (*to_bet - self.round_bet);
+                    *to_bet = self.cash + self.round_bet;
+                    println!("ALL-IN {} (ALL-IN RAISE {})", self.cash, *raise_value);
+                } else {
+                    println!("ALL-IN {}", self.cash);
+                }
+                *pot += self.all_in();
+            } 
+
+            _ => panic!("wrong action given to player!")
         }
     }
 
@@ -61,7 +113,12 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
     players
 }
 
-pub fn reset_round(players: &mut Vec<Player>) {}
+pub fn reset_round(players: &mut Vec<Player>) {
+    for player in players {
+        player.total_bet += player.round_bet;
+        player.round_bet = 0;
+    }
+}
 pub fn reset_hand(players: &mut Vec<Player>) {}
 
 pub fn active_players_count(players: &Vec<Player>) -> u32 {

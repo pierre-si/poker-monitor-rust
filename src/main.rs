@@ -46,10 +46,6 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn action(players: &mut Vec<players::Player>, player: usize, pot: &mut u32, to_bet: &mut u32, raise_value: &mut u32) {
-
-}
-
 fn main() {
     const N_CARDS_TO_DEAL: [usize; 4] = [0, 3, 1, 1];
     let args: Vec<String> = env::args().collect();
@@ -119,14 +115,16 @@ fn main() {
 
         // same hand
         loop{
-            println!("\n*** Main numéro {:2}  Tour numéro {} ***\n", hand_n, round_n);
+            println!("\n*** Main numéro {:2}  Tour numéro {} ***", hand_n, round_n);
             inout::ask_cards(&mut table, N_CARDS_TO_DEAL[round_n-1]);
             
 			min_players_count = players::active_players_count(&players);
             player_n = 0;
             // same round
 			loop{
-                action(&mut players, current_player, &mut pot, &mut to_bet, &mut raise_value);
+                println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", pot, to_bet, raise_value);
+                let action = inout::ask_action(&players, current_player, to_bet, raise_value);
+                players[current_player].action(action, &mut pot, &mut to_bet, &mut raise_value);
                 current_player = players::next_active_player(&players, current_player);
                 player_n += 1;
                 // les joueurs actifs au début du tour doivent jouer au moins une fois
