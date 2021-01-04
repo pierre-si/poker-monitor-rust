@@ -1,4 +1,3 @@
-use std::collections::LinkedList;
 use crate::cards;
 
 // on ne manipule plus de liste chainée de joueurs (contrairement à la version C), mais un vector (tableau) de joueurs
@@ -7,7 +6,7 @@ use crate::cards;
 pub struct Player {
     number: u32,
     cash: u32,
-    turn_bet: u32,
+    round_bet: u32,
     total_bet: u32,
     pub state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
 
@@ -20,12 +19,32 @@ impl Player {
         Player {
             number: number,
             cash: start_cash,
-            turn_bet: 0,
+            round_bet: 0,
             total_bet: 0,
             state: 'i',
             deck: cards::Deck::new(2),
             raises_history: [0; 7]
         }
+    }
+
+    pub fn make_bet(&mut self, mut amount: u32) -> u32 {
+        if self.cash <= amount {
+            println!("Player {} goes all-in", self.number);
+            amount = self.all_in();
+        } else {
+            self.cash -= amount;
+            self.round_bet += amount;
+        }
+        amount
+    }
+
+    pub fn all_in(&mut self) -> u32 {
+        let amount = self.cash;
+        self.state = 'a';
+        self.cash = 0;
+        self.round_bet += amount;
+
+        amount
     }
 }
 
@@ -40,6 +59,14 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
         players.push(Player::new(i, start_cash))
     }
     players
+}
+
+pub fn active_players_count(players: &Vec<Player>) -> u32 {
+    let mut number = 0;
+    for player in players {
+        if player.state == 'i' { number += 1 };
+    }
+    number
 }
 
 pub fn next_active_player(players: &Vec<Player>, starting_with: usize) -> usize {
