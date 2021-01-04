@@ -60,7 +60,7 @@ fn main() {
     let mut small_blind: u32 = game_settings.first_blind;
     // variables to reinitialize at the beginning of each hand
     let (mut pot, mut round): (u32, u32);
-    let mut table = cards::create_deck(5);
+    let mut table = cards::Deck::create_deck(5);
     // variables to reinitialize at the beginning of each round
     let (mut to_bet, mut raise_value): (u32, u32);
     // auxiliary variables
@@ -82,7 +82,7 @@ fn main() {
         // Réinitialisation des variables de la main
         pot = 0;
         round = 1;
-        cards::reinitialise_cards(&mut table);
+        table.reset_cards();
         println!("{:?}", table);
         // Initialisation du premier tour
         println!("*** Main numéro {} Préparation   ***\n", hand_n);

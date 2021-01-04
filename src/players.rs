@@ -22,7 +22,7 @@ fn create_player(number: u32, start_cash: u32) -> Player {
         turn_bet: 0,
         total_bet: 0,
         state: 'i',
-        deck: cards::create_deck(2),
+        deck: cards::Deck::create_deck(2),
         raises_history: [0; 7]
     }
 }
