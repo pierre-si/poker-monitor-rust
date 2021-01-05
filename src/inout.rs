@@ -9,6 +9,51 @@ pub fn print_players(players: &Vec<players::Player>){
     }
 }
 
+pub fn print_cards(deck: &cards::Deck) {
+    let values_names = ["Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi", "As"];
+    let suits_names = ["trèfle", "carreau", "cœur", "pique"];
+
+    println!("La main comporte {} cartes et {} places vides", deck.known_cards_number, deck.cards_number-deck.known_cards_number);
+    for i in 0..deck.known_cards_number {
+        println!("Carte {:2} : {} de {}", i+1, values_names[(deck.values[i]-1) as usize], suits_names[(deck.suits[i]-1) as usize]);
+    }
+}
+
+pub fn print_combination(comb: &[usize]) {
+    let combinations_names = ["Carte haute", "Paire", "Deux paires", "Brelan", "Quinte", "Couleur", "Full", "Carré", "Quinte couleur", "Quinte royale"];
+    let values_names = ["Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi", "As"];
+    println!("{}", combinations_names[comb[0]-1]);
+    let mut i = 1;
+    while i < 6 && comb[i] != 0 {
+        print!("{} ", values_names[comb[i]-1]);
+        i += 1;
+    }
+    println!("");
+}
+
+#[cfg(test)]
+mod test_print {
+    use super::*;
+
+    #[test]
+    fn print_deck() {
+        let dummy_deck = cards::Deck {
+            cards_number: 4,
+            known_cards_number: 3,
+
+            values: vec![10, 11, 12, 0],
+            suits: vec![1, 2, 3, 4],
+        };
+        print_cards(&dummy_deck);
+    }
+
+    #[test]
+    fn print_comb() {
+        let dummy_combination = [4, 11, 10, 9, 8, 7];
+        print_combination(&dummy_combination);
+    }
+}
+
 //TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
 pub fn ask_player_number(players: &Vec<players::Player>) -> usize {
     let mut input = String::new();
@@ -48,7 +93,7 @@ pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, ra
 }
 
 // créer une méthode add_card(value, suit) ou set_card(value, suit, index) dans deck qui vérifie que le nombre de carte ne dépasse pas la limite.
-pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) {
+pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) -> bool {
     let mut input = String::new();
 
     for i in deck.known_cards_number..deck.known_cards_number+n_cards {
@@ -67,7 +112,7 @@ pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) {
                     'q' | 'Q' => deck.values[i] = 12,
                     'k' | 'K' => deck.values[i] = 13,
                     'a' | 'A' => deck.values[i] = 14,
-                    'c' | 'C' => if i == deck.known_cards_number { return },
+                    'c' | 'C' => if i == deck.known_cards_number { return false },
                     _ => continue,
                 }
             }
@@ -90,4 +135,5 @@ pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) {
     }
     deck.known_cards_number += n_cards;
     if deck.known_cards_number > deck.cards_number { deck.known_cards_number = deck.cards_number }
+    true
 }
