@@ -135,9 +135,17 @@ pub fn reset_hand(players: &mut Vec<Player>) {
 pub fn active_players_count(players: &Vec<Player>) -> u32 {
     let mut number = 0;
     for player in players {
-        if player.state == 'i' { number += 1 };
+        if player.state == 'i' { number += 1 }
     }
     number
+}
+
+pub fn qualified_players(players: &Vec<Player>) -> Vec<usize> {
+    let mut qualified_players = Vec::new();
+    for (i, player) in players.iter().enumerate() {
+        if player.state == 'i' || player.state == 'a' { qualified_players.push(i) }
+    }
+    qualified_players 
 }
 
 pub fn next_active_player(players: &Vec<Player>, starting_with: usize) -> usize {
