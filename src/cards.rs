@@ -26,6 +26,34 @@ impl Deck {
         for value in &mut self.values { *value = 0; }
         for suit in &mut self.suits { *suit = 0; }
     }
+
+    pub fn sort_deck(&mut self) {
+        // insertion sort
+        let mut value: u32;
+        let mut suit: u32;
+        let mut j: usize;
+        for i in 0..self.known_cards_number {
+            value = self.values[i];
+            suit = self.suits[i];
+            j = i;
+            while j > 0 && self.values[j-1] < value {
+                self.values[j] = self.values[j-1];
+                self.suits[j] = self.suits[j-1];
+                j -= 1;
+            }
+            self.values[j] = value;
+            self.suits[j] = suit;
+        }
+    }
+
+    pub fn compare_with(&self, other: &Deck) -> std::cmp::Ordering {
+        for i in 0..self.known_cards_number {
+            if self.values[i] > other.values[i] { return std::cmp::Ordering::Greater }
+            if self.values[i] < other.values[i] { return std::cmp::Ordering::Less }
+        }
+
+        std::cmp::Ordering::Equal
+    }
 }
 
 pub fn merge_decks(first_deck: &Deck, second_deck: &Deck) -> Deck {
@@ -41,4 +69,23 @@ pub fn merge_decks(first_deck: &Deck, second_deck: &Deck) -> Deck {
         merge.suits[i] = second_deck.suits[i - first_deck.known_cards_number];
     }
     merge
+}
+
+pub fn sort_decks(decks: &mut Vec<Deck>) {
+    decks.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse().then(a.compare_with(b).reverse())
+    });
+/*
+    let mut j: usize;
+    for i in 0..decks.len() {
+        let current = decks[i];
+        j = i;
+        while j > 0 && (decks[j-1].known_cards_number < current.known_cards_number 
+                        || (decks[j-1].known_cards_number == current.known_cards_number
+                            && current.higher_value_than(&decks[j-1]))) {
+            decks[j] = decks[j-1];
+            j -= 1;
+        }
+        decks[j] = current;
+    }
+*/
 }
