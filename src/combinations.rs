@@ -25,8 +25,28 @@ fn split_suit(deck: &cards::Deck, suits: &mut Vec<cards::Deck>) {
     cards::sort_decks(suits);
 }
 
-fn deleted_duplicates(deck: &cards::Deck) -> cards::Deck {
+fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
+    let mut size = 0;
     deck.sort();
+    let mut i = 0;
+    while i < deck.known_cards_number {
+        while i+1 < deck.known_cards_number && deck.values[i] == deck.values[i+1] { i += 1; }
+        size += 1;
+        i += 1;
+    }
+    let mut unique = cards::Deck::new(size);
+    unique.known_cards_number = 1;
+    unique.values[0] = deck.values[0];
+    unique.suits[0] = deck.suits[0];
+    i = 1;
+    while unique.known_cards_number < size {
+        while deck.values[i] == unique.values[unique.known_cards_number-1] { i += 1; }
+        unique.values[unique.known_cards_number] = deck.values[i];
+        unique.suits[unique.known_cards_number] = deck.suits[i];
+        unique.known_cards_number += 1;
+        i += 1;
+    }
+    unique
 }
 
 #[cfg(test)]
