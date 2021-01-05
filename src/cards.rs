@@ -27,3 +27,18 @@ impl Deck {
         for suit in &mut self.suits { *suit = 0; }
     }
 }
+
+pub fn merge_decks(first_deck: &Deck, second_deck: &Deck) -> Deck {
+    let mut merge = Deck::new(first_deck.cards_number + second_deck.cards_number);
+    merge.known_cards_number = first_deck.known_cards_number + second_deck.known_cards_number;
+
+    for i in 0..first_deck.known_cards_number {
+        merge.values[i] = first_deck.values[i];
+        merge.suits[i] = first_deck.suits[i];
+    }
+    for i in first_deck.known_cards_number..first_deck.known_cards_number+second_deck.known_cards_number {
+        merge.values[i] = second_deck.values[i - first_deck.known_cards_number];
+        merge.suits[i] = second_deck.suits[i - first_deck.known_cards_number];
+    }
+    merge
+}
