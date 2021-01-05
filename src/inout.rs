@@ -96,7 +96,7 @@ pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, ra
 pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) -> bool {
     let mut input = String::new();
 
-    for i in deck.known_cards_number..deck.known_cards_number+n_cards {
+    for i in deck.known_cards_number..std::cmp::min(deck.known_cards_number+n_cards, deck.cards_number) {
         loop {
             println!("CARD {} VALUE: ", i+1);
             input.clear();
