@@ -18,11 +18,12 @@ fn extract_suit(deck: &cards::Deck, suit: u32) -> cards::Deck {
 }
 
 fn split_suit(deck: &cards::Deck, suits: &mut Vec<cards::Deck>) {
+    let mut suits: Vec<cards::Deck> = Vec::new();
     for i in 1..5 {
-        suits[i-1] = extract_suit(deck, i as u32);
+        suits.push(extract_suit(deck, i as u32));
         suits[i-1].sort();
     }
-    cards::sort_decks(suits);
+    cards::sort_decks(&mut suits);
 }
 
 fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
@@ -79,6 +80,90 @@ fn split_straight(deck: &mut cards::Deck, straights: &mut Vec<cards::Deck>) {
         number += 1;
     }
     cards::sort_decks(straights);
+}
+
+fn extract_values(deck: &cards::Deck, value: u32) -> cards::Deck {
+    let mut extracted = cards::Deck::new(value_count(&deck.values[..deck.known_cards_number], value));
+    let mut i = 0;
+    while extracted.known_cards_number < extracted.cards_number {
+        if deck.values[i] == value {
+            extracted.values[extracted.known_cards_number] = deck.values[i];
+            extracted.suits[extracted.known_cards_number] = deck.suits[i];
+            extracted.known_cards_number += 1;
+        }
+        i += 1;
+    }
+    extracted
+}
+
+fn split_same_values(deck: &mut cards::Deck, same_values: &mut Vec<cards::Deck>) {
+    let unique = delete_duplicates(deck);
+    for i in 0..unique.cards_number {
+        same_values[i] = extract_values(deck, unique.values[i]);
+    }
+    cards::sort_decks(same_values);
+}
+
+fn combination_type(deck: &mut cards::Deck, types: &mut Vec<u32>) {
+    let mut suits = vec![];
+    let mut straights = vec![];
+    for i in 1..7 { straights.push(cards::Deck::new(1)); }//::new();
+    let mut same = vec![];//::new();
+    for i in 1..7 { same.push(cards::Deck::new(1)); }
+    let mut suits_straights = vec![];//::new();
+    for i in 1..7 { suits_straights.push(cards::Deck::new(1)) }
+
+    /*for i in types.iter() {
+        *i = 0;
+    }*/
+    
+    split_suit(deck, &mut suits);
+    split_straight(deck, &mut straights);
+    split_same_values(deck, &mut same);
+    split_straight(&mut suits[0], &mut suits_straights);
+
+    if suits_straights[0].known_cards_number >= 5 {
+        types[0] = 9;
+        types[1] = suits_straights[0].values[0];
+    } else if same[0].known_cards_number == 4 {
+        types[0] = 8;
+        types[1] = same[0].values[0];
+        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[4] };
+    } else if same[0].known_cards_number == 3 && same[1].known_cards_number >= 2 {
+        types[0] = 7;
+        types[1] = same[0].values[0];
+        types[2] = same[1].values[1]; 
+    } else if suits[0].known_cards_number >= 5 {
+        types[0] = 6;
+        for i in 1..6 {
+            types[i] = suits[0].values[i-1];
+        }
+    } else if straights[0].known_cards_number >= 5 {
+        types[0] = 5;
+        types[1] = straights[0].values[0];
+    } else if same[0].known_cards_number == 3 {
+        types[0] = 4;
+        types[1] = same[0].values[0];
+        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[3] };
+        types[3] = if deck.values[1] != types[1] { deck.values[1] } else { deck.values[4] };
+    } else if same[1].known_cards_number == 2 {
+        types[0] = 3;
+        types[1] = same[0].values[0];
+        types[2] = same[1].values[0];
+        types[3] = if deck.values[0] != types[1] { deck.values[0] } else {
+            if deck.values[2] != types[2] { deck.values[2] } else { deck.values[4] } };
+    } else if same[0].known_cards_number == 2 {
+        types[0] = 2;
+        types[1] = same[0].values[0];
+        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[2] };
+        types[3] = if deck.values[1] != types[1] { deck.values[1] } else { deck.values[3] };
+        types[4] = if types[3] == deck.values[1] && deck.values[2] != types[1] { deck.values[2] } else { deck.values[4] };
+    } else {
+        types[0] = 1;
+        for i in 1..6 {
+            types[i] = deck.values[i-1];
+        }
+    }
 }
 
 #[cfg(test)]
