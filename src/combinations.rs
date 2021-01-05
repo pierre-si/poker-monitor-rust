@@ -104,7 +104,7 @@ fn split_same_values(deck: &mut cards::Deck, same_values: &mut Vec<cards::Deck>)
     cards::sort_decks(same_values);
 }
 
-fn combination_type(deck: &mut cards::Deck, types: &mut Vec<u32>) {
+pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
     let mut suits = vec![];
     let mut straights = vec![];
     for i in 1..7 { straights.push(cards::Deck::new(1)); }//::new();
@@ -164,6 +164,16 @@ fn combination_type(deck: &mut cards::Deck, types: &mut Vec<u32>) {
             types[i] = deck.values[i-1];
         }
     }
+}
+
+pub fn compare_combinations(first: &[u32], second: &[u32]) -> u32 {
+    let mut i = 0;
+    while first[i] != 0 {
+        if first[i] > second[i] { return 1 }
+        if first[i] < second[i] { return 0 }
+        i += 1;
+    }
+    return 2
 }
 
 #[cfg(test)]
