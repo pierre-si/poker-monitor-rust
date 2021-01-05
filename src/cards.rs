@@ -27,7 +27,7 @@ impl Deck {
         for suit in &mut self.suits { *suit = 0; }
     }
 
-    pub fn sort_deck(&mut self) {
+    pub fn sort(&mut self) {
         // insertion sort
         let mut value: u32;
         let mut suit: u32;

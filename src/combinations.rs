@@ -20,9 +20,13 @@ fn extract_suit(deck: &cards::Deck, suit: u32) -> cards::Deck {
 fn split_suit(deck: &cards::Deck, suits: &mut Vec<cards::Deck>) {
     for i in 1..5 {
         suits[i-1] = extract_suit(deck, i as u32);
-        suits[i-1].sort_deck();
+        suits[i-1].sort();
     }
     cards::sort_decks(suits);
+}
+
+fn deleted_duplicates(deck: &cards::Deck) -> cards::Deck {
+    deck.sort();
 }
 
 #[cfg(test)]
