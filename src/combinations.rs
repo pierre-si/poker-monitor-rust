@@ -49,6 +49,38 @@ fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
     unique
 }
 
+fn split_straight(deck: &mut cards::Deck, straights: &mut Vec<cards::Deck>) {
+
+    *deck = delete_duplicates(deck);
+    if deck.values[0] == 14 {
+        let mut temp = cards::Deck::new(1);
+        temp.known_cards_number = 1;
+        temp.values[0] = 1;
+        temp.suits[0] = deck.suits[0];
+        *deck = cards::merge_decks(&deck, &temp);
+    }
+    let mut i = 0;
+    let mut number = 0;
+    let mut j;
+    while i < deck.known_cards_number {
+        j = i;
+        while i+1 < deck.known_cards_number && deck.values[i] == deck.values[i+1]+1 {
+            i += 1;
+        }
+        i += 1;
+        straights[number] = cards::Deck::new(i-j);
+        while j < i {
+            let index = straights[number].known_cards_number;
+            straights[number].values[index] = deck.values[j];
+            straights[number].suits[index] = deck.suits[j];
+            j += 1;
+            straights[number].known_cards_number += 1;
+        }
+        number += 1;
+    }
+    cards::sort_decks(straights);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
