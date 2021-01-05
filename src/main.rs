@@ -5,6 +5,7 @@ use getopts::Options;
 mod inout;
 mod cards;
 mod players;
+mod combinations;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {}
@@ -44,6 +45,73 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     let blinds_raise_interval = 8;
 
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
+}
+
+fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::Deck, pot: u32) {
+   let qualified_players = players::qualified_players(players); 
+
+    if qualified_players.len() == 1 {
+        println!("JOUEUR {} REMPORTE {}", qualified_players[0], pot);
+        players[qualified_players[0]].cash += pot;
+    } else {
+        println!("*** ABATTAGE ***");
+
+    	for j in qualified_players.iter() {
+			println!("Joueur {} :", j);
+			if !inout::ask_cards(&mut players[*j].deck, 2) { players[*j].state = 'f'; }
+            inout::print_cards(&players[*j].deck);
+		}
+
+        let to_ask = table.cards_number - table.known_cards_number;
+        inout::ask_cards(&mut table, to_ask); 
+		// tant qu'il y a de l'argent à distribuer on cherche des gagnants
+        let mut distributed_amount = 0;
+        let mut to_distribute = 0;
+        let mut winners_count = 0;
+        let mut winners = vec![];
+        let mut winners_combinations = [0; 6];
+
+        let mut player_combination = [0; 6];
+ 		while distributed_amount < pot {
+			winners_combinations[0] = 0;
+			//nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
+            //pjoueur = joueurQualifieSuivant(pjoueur);
+            for j in qualified_players.iter() {
+                let player_cards = cards::merge_decks(&table, &players[*j].deck);
+                inout::print_cards(&player_cards);
+            }
+            for j in qualified_players.iter() {
+                combinations::combination_type(&mut players[*j].deck, &mut player_combination);
+                println!("Player {}:", *j);
+                inout::print_combination(&player_combination);
+                if combinations::compare_combinations(&player_combination, &winners_combinations) == 1 {
+                    winners = vec![*j];
+                    combinations::combination_type(&mut players[*j].deck, &mut winners_combinations);
+                } else if combinations::compare_combinations(&player_combination, &winners_combinations) == 2 {
+                    winners.push(*j);
+                }
+            }
+            winners.sort_by_key(|k| players[*k].total_bet);
+            let mut i = 0;
+            while i < winners.len() {
+                to_distribute = players::available_pot_amount(players, players[winners[i]].number as usize) - distributed_amount;
+                if to_distribute > 0 {
+                    for j in i..winners.len() {
+                        println!("Joueur {} REMPORTE {}", players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
+                        players[winners[j]].cash += to_distribute / ((winners.len() - i) as u32);
+                    }
+                    if to_distribute % ((winners.len() - i) as u32) != 0 {
+                        println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
+                        players[winners[0]].cash += to_distribute % winners.len() as u32;
+                        //players[inout::ask_player_number(players)].cash += to_distribute % winners.len() as u32;
+                    }
+                    distributed_amount += to_distribute;
+                }
+                players[winners[i]].state = 'f';
+                i+=1;
+            }
+		}
+	}
 }
 
 fn main() {
@@ -141,7 +209,7 @@ fn main() {
             current_player = players::next_active_player(&players, dealer);
             if players::active_players_count(&players) <= 1 || round_n >= 5 { break; } 
         }
-        pot_repartition();
+        pot_distribution(&mut players, &mut table, pot);
         players::reset_hand(&mut players);
         dealer = player_small_blind;
         player_small_blind = player_big_blind;
@@ -149,4 +217,5 @@ fn main() {
         if hand_n % game_settings.blinds_raise_interval == 0 { small_blind *= 2; }
         if players::active_players_count(&players) <= 1 { break; }
     }
+    println!("Merci et à bientôt sur Monitor !");
 }

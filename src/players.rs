@@ -161,3 +161,11 @@ pub fn next_active_player(players: &Vec<Player>, starting_with: usize) -> usize 
     }
     return i
 }
+
+pub fn available_pot_amount(players: &Vec<Player>, initial: usize) -> u32 {
+    let mut amount = 0;
+    for player in players {
+        amount += if player.total_bet > players[initial].total_bet {players[initial].total_bet} else { player.total_bet };
+    }
+    amount
+}
