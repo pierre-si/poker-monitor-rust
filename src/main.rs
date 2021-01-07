@@ -101,8 +101,8 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::D
                     }
                     if to_distribute % ((winners.len() - i) as u32) != 0 {
                         println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
-                        players[winners[0]].cash += to_distribute % winners.len() as u32;
-                        //players[inout::ask_player_number(players)].cash += to_distribute % winners.len() as u32;
+                        let num = inout::ask_player_number(players); 
+                        players[num].cash += to_distribute % winners.len() as u32;
                     }
                     distributed_amount += to_distribute;
                 }
