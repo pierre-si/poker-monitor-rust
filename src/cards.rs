@@ -49,7 +49,6 @@ impl Hand {
     }
 
     pub fn compare_with(&self, other: &Hand) -> std::cmp::Ordering {
-        println!("{} {}", self.known_cards_number, other.known_cards_number);
         if self.known_cards_number > other.known_cards_number {
             return std::cmp::Ordering::Greater
         } else if self.known_cards_number < other.known_cards_number {
@@ -81,7 +80,7 @@ pub fn merge_hands(first_hand: &Hand, second_hand: &Hand) -> Hand {
 }
 
 pub fn sort_hands(hands: &mut Vec<Hand>) {
-    hands.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse() })
+    hands.sort_by(|a, b| { a.compare_with(b).reverse() })
     // pb : then() est semble être exécuté même si la première comparaison n'est pas equal.
     //hands.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse().then(a.compare_with(b).reverse())});
 /*
