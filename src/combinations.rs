@@ -17,13 +17,14 @@ fn extract_suit(deck: &cards::Deck, suit: u32) -> cards::Deck {
     extracted
 }
 
-fn split_suit(deck: &cards::Deck, suits: &mut Vec<cards::Deck>) {
+fn split_suit(deck: &cards::Deck) -> Vec<cards::Deck> {
     let mut suits: Vec<cards::Deck> = Vec::new();
     for i in 1..5 {
         suits.push(extract_suit(deck, i as u32));
         suits[i-1].sort();
     }
     cards::sort_decks(&mut suits);
+    suits
 }
 
 fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
@@ -50,18 +51,17 @@ fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
     unique
 }
 
-fn split_straight(deck: &mut cards::Deck, straights: &mut Vec<cards::Deck>) {
-
-    *deck = delete_duplicates(deck);
+fn split_straight(deck: &mut cards::Deck) -> Vec<cards::Deck> {
+    let mut deck = delete_duplicates(deck);
     if deck.values[0] == 14 {
         let mut temp = cards::Deck::new(1);
         temp.known_cards_number = 1;
         temp.values[0] = 1;
         temp.suits[0] = deck.suits[0];
-        *deck = cards::merge_decks(&deck, &temp);
+        deck = cards::merge_decks(&deck, &temp);
     }
+    let mut straights: Vec<cards::Deck> = Vec::new();
     let mut i = 0;
-    let mut number = 0;
     let mut j;
     while i < deck.known_cards_number {
         j = i;
@@ -69,17 +69,18 @@ fn split_straight(deck: &mut cards::Deck, straights: &mut Vec<cards::Deck>) {
             i += 1;
         }
         i += 1;
-        straights[number] = cards::Deck::new(i-j);
+        let mut straight = cards::Deck::new(i-j);
         while j < i {
-            let index = straights[number].known_cards_number;
-            straights[number].values[index] = deck.values[j];
-            straights[number].suits[index] = deck.suits[j];
+            let index = straight.known_cards_number;
+            straight.values[index] = deck.values[j];
+            straight.suits[index] = deck.suits[j];
             j += 1;
-            straights[number].known_cards_number += 1;
+            straight.known_cards_number += 1;
         }
-        number += 1;
+        straights.push(straight);
     }
-    cards::sort_decks(straights);
+    cards::sort_decks(&mut straights);
+    straights
 }
 
 fn extract_values(deck: &cards::Deck, value: u32) -> cards::Deck {
@@ -96,31 +97,36 @@ fn extract_values(deck: &cards::Deck, value: u32) -> cards::Deck {
     extracted
 }
 
-fn split_same_values(deck: &mut cards::Deck, same_values: &mut Vec<cards::Deck>) {
+fn split_same_values(deck: &mut cards::Deck) -> Vec<cards::Deck> {
     let unique = delete_duplicates(deck);
+    let mut same_values: Vec<cards::Deck> = Vec::new();
     for i in 0..unique.cards_number {
-        same_values[i] = extract_values(deck, unique.values[i]);
+        same_values.push(extract_values(deck, unique.values[i]));
     }
-    cards::sort_decks(same_values);
+    cards::sort_decks(&mut same_values);
+    same_values
 }
 
 pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
-    let mut suits = vec![];
-    let mut straights = vec![];
-    for i in 1..7 { straights.push(cards::Deck::new(1)); }//::new();
-    let mut same = vec![];//::new();
-    for i in 1..7 { same.push(cards::Deck::new(1)); }
-    let mut suits_straights = vec![];//::new();
-    for i in 1..7 { suits_straights.push(cards::Deck::new(1)) }
+    /*
+    let mut suits: Vec<cards::Deck> = Vec::with_capacity(4);
+    unsafe { suits.set_len(4); }
+    let mut straights: Vec<cards::Deck> = Vec::with_capacity(7);
+    unsafe { straights.set_len(7); }
+    let mut same: Vec<cards::Deck> = Vec::with_capacity(7);
+    unsafe { same.set_len(7); }
+    let mut suits_straights: Vec<cards::Deck> = Vec::with_capacity(7);
+    unsafe { suits_straights.set_len(7); }
+    */
 
-    /*for i in types.iter() {
-        *i = 0;
-    }*/
+    for i in 1..types.len() {
+        types[i] = 0;
+    }
     
-    split_suit(deck, &mut suits);
-    split_straight(deck, &mut straights);
-    split_same_values(deck, &mut same);
-    split_straight(&mut suits[0], &mut suits_straights);
+    let mut suits = split_suit(deck);
+    let straights = split_straight(deck);
+    let same = split_same_values(deck);
+    let suits_straights = split_straight(&mut suits[0]);
 
     if suits_straights[0].known_cards_number >= 5 {
         types[0] = 9;
