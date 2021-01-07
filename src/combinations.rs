@@ -4,12 +4,12 @@ pub fn value_count(vector: &[u32], value: u32) -> usize {
     vector.iter().filter(|&n| *n == value).count()
 }
 
-fn extract_suit(deck: &cards::Deck, suit: u32) -> cards::Deck {
-    let mut extracted = cards::Deck::new(value_count(&deck.suits[..deck.known_cards_number], suit));
+fn extract_suit(hand: &cards::Hand, suit: u32) -> cards::Hand {
+    let mut extracted = cards::Hand::new(value_count(&hand.suits[..hand.known_cards_number], suit));
 
-    for i in 0..deck.known_cards_number {
-        if deck.suits[i] == suit {
-            extracted.values[extracted.known_cards_number] = deck.values[i];
+    for i in 0..hand.known_cards_number {
+        if hand.suits[i] == suit {
+            extracted.values[extracted.known_cards_number] = hand.values[i];
             extracted.suits[extracted.known_cards_number] = suit;
             extracted.known_cards_number += 1;
         }
@@ -17,79 +17,79 @@ fn extract_suit(deck: &cards::Deck, suit: u32) -> cards::Deck {
     extracted
 }
 
-fn split_suit(deck: &cards::Deck) -> Vec<cards::Deck> {
-    let mut suits: Vec<cards::Deck> = Vec::new();
+fn split_suit(hand: &cards::Hand) -> Vec<cards::Hand> {
+    let mut suits: Vec<cards::Hand> = Vec::new();
     for i in 1..5 {
-        suits.push(extract_suit(deck, i as u32));
+        suits.push(extract_suit(hand, i as u32));
         suits[i-1].sort();
     }
-    cards::sort_decks(&mut suits);
+    cards::sort_hands(&mut suits);
     suits
 }
 
-fn delete_duplicates(deck: &mut cards::Deck) -> cards::Deck {
+fn delete_duplicates(hand: &mut cards::Hand) -> cards::Hand {
     let mut size = 0;
-    deck.sort();
+    hand.sort();
     let mut i = 0;
-    while i < deck.known_cards_number {
-        while i+1 < deck.known_cards_number && deck.values[i] == deck.values[i+1] { i += 1; }
+    while i < hand.known_cards_number {
+        while i+1 < hand.known_cards_number && hand.values[i] == hand.values[i+1] { i += 1; }
         size += 1;
         i += 1;
     }
-    let mut unique = cards::Deck::new(size);
+    let mut unique = cards::Hand::new(size);
     unique.known_cards_number = 1;
-    unique.values[0] = deck.values[0];
-    unique.suits[0] = deck.suits[0];
+    unique.values[0] = hand.values[0];
+    unique.suits[0] = hand.suits[0];
     i = 1;
     while unique.known_cards_number < size {
-        while deck.values[i] == unique.values[unique.known_cards_number-1] { i += 1; }
-        unique.values[unique.known_cards_number] = deck.values[i];
-        unique.suits[unique.known_cards_number] = deck.suits[i];
+        while hand.values[i] == unique.values[unique.known_cards_number-1] { i += 1; }
+        unique.values[unique.known_cards_number] = hand.values[i];
+        unique.suits[unique.known_cards_number] = hand.suits[i];
         unique.known_cards_number += 1;
         i += 1;
     }
     unique
 }
 
-fn split_straight(deck: &mut cards::Deck) -> Vec<cards::Deck> {
-    let mut deck = delete_duplicates(deck);
-    if deck.values[0] == 14 {
-        let mut temp = cards::Deck::new(1);
+fn split_straight(hand: &mut cards::Hand) -> Vec<cards::Hand> {
+    let mut hand = delete_duplicates(hand);
+    if hand.values[0] == 14 {
+        let mut temp = cards::Hand::new(1);
         temp.known_cards_number = 1;
         temp.values[0] = 1;
-        temp.suits[0] = deck.suits[0];
-        deck = cards::merge_decks(&deck, &temp);
+        temp.suits[0] = hand.suits[0];
+        hand = cards::merge_hands(&hand, &temp);
     }
-    let mut straights: Vec<cards::Deck> = Vec::new();
+    let mut straights: Vec<cards::Hand> = Vec::new();
     let mut i = 0;
     let mut j;
-    while i < deck.known_cards_number {
+    while i < hand.known_cards_number {
         j = i;
-        while i+1 < deck.known_cards_number && deck.values[i] == deck.values[i+1]+1 {
+        while i+1 < hand.known_cards_number && hand.values[i] == hand.values[i+1]+1 {
             i += 1;
         }
         i += 1;
-        let mut straight = cards::Deck::new(i-j);
+        let mut straight = cards::Hand::new(i-j);
         while j < i {
             let index = straight.known_cards_number;
-            straight.values[index] = deck.values[j];
-            straight.suits[index] = deck.suits[j];
+            straight.values[index] = hand.values[j];
+            straight.suits[index] = hand.suits[j];
             j += 1;
             straight.known_cards_number += 1;
         }
         straights.push(straight);
     }
-    cards::sort_decks(&mut straights);
+    cards::sort_hands(&mut straights);
     straights
 }
 
-fn extract_values(deck: &cards::Deck, value: u32) -> cards::Deck {
-    let mut extracted = cards::Deck::new(value_count(&deck.values[..deck.known_cards_number], value));
+fn extract_values(hand: &cards::Hand, value: u32) -> cards::Hand {
+    let mut extracted = cards::Hand::new(value_count(&hand.values[..hand.known_cards_number], value));
     let mut i = 0;
     while extracted.known_cards_number < extracted.cards_number {
-        if deck.values[i] == value {
-            extracted.values[extracted.known_cards_number] = deck.values[i];
-            extracted.suits[extracted.known_cards_number] = deck.suits[i];
+        if hand.values[i] == value {
+            extracted.values[extracted.known_cards_number] = hand.values[i];
+            extracted.suits[extracted.known_cards_number] = hand.suits[i];
             extracted.known_cards_number += 1;
         }
         i += 1;
@@ -97,17 +97,17 @@ fn extract_values(deck: &cards::Deck, value: u32) -> cards::Deck {
     extracted
 }
 
-fn split_same_values(deck: &mut cards::Deck) -> Vec<cards::Deck> {
-    let unique = delete_duplicates(deck);
-    let mut same_values: Vec<cards::Deck> = Vec::new();
+fn split_same_values(hand: &mut cards::Hand) -> Vec<cards::Hand> {
+    let unique = delete_duplicates(hand);
+    let mut same_values: Vec<cards::Hand> = Vec::new();
     for i in 0..unique.cards_number {
-        same_values.push(extract_values(deck, unique.values[i]));
+        same_values.push(extract_values(hand, unique.values[i]));
     }
-    cards::sort_decks(&mut same_values);
+    cards::sort_hands(&mut same_values);
     same_values
 }
 
-pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
+pub fn combination_type(hand: &mut cards::Hand, types: &mut [u32]) {
     /*
     let mut suits: Vec<cards::Deck> = Vec::with_capacity(4);
     unsafe { suits.set_len(4); }
@@ -123,9 +123,9 @@ pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
         types[i] = 0;
     }
     
-    let mut suits = split_suit(deck);
-    let straights = split_straight(deck);
-    let same = split_same_values(deck);
+    let mut suits = split_suit(hand);
+    let straights = split_straight(hand);
+    let same = split_same_values(hand);
     let suits_straights = split_straight(&mut suits[0]);
 
     if suits_straights[0].known_cards_number >= 5 {
@@ -134,7 +134,7 @@ pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
     } else if same[0].known_cards_number == 4 {
         types[0] = 8;
         types[1] = same[0].values[0];
-        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[4] };
+        types[2] = if hand.values[0] != types[1] { hand.values[0] } else { hand.values[4] };
     } else if same[0].known_cards_number == 3 && same[1].known_cards_number >= 2 {
         types[0] = 7;
         types[1] = same[0].values[0];
@@ -150,24 +150,24 @@ pub fn combination_type(deck: &mut cards::Deck, types: &mut [u32]) {
     } else if same[0].known_cards_number == 3 {
         types[0] = 4;
         types[1] = same[0].values[0];
-        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[3] };
-        types[3] = if deck.values[1] != types[1] { deck.values[1] } else { deck.values[4] };
+        types[2] = if hand.values[0] != types[1] { hand.values[0] } else { hand.values[3] };
+        types[3] = if hand.values[1] != types[1] { hand.values[1] } else { hand.values[4] };
     } else if same[1].known_cards_number == 2 {
         types[0] = 3;
         types[1] = same[0].values[0];
         types[2] = same[1].values[0];
-        types[3] = if deck.values[0] != types[1] { deck.values[0] } else {
-            if deck.values[2] != types[2] { deck.values[2] } else { deck.values[4] } };
+        types[3] = if hand.values[0] != types[1] { hand.values[0] } else {
+            if hand.values[2] != types[2] { hand.values[2] } else { hand.values[4] } };
     } else if same[0].known_cards_number == 2 {
         types[0] = 2;
         types[1] = same[0].values[0];
-        types[2] = if deck.values[0] != types[1] { deck.values[0] } else { deck.values[2] };
-        types[3] = if deck.values[1] != types[1] { deck.values[1] } else { deck.values[3] };
-        types[4] = if types[3] == deck.values[1] && deck.values[2] != types[1] { deck.values[2] } else { deck.values[4] };
+        types[2] = if hand.values[0] != types[1] { hand.values[0] } else { hand.values[2] };
+        types[3] = if hand.values[1] != types[1] { hand.values[1] } else { hand.values[3] };
+        types[4] = if types[3] == hand.values[1] && hand.values[2] != types[1] { hand.values[2] } else { hand.values[4] };
     } else {
         types[0] = 1;
         for i in 1..6 {
-            types[i] = deck.values[i-1];
+            types[i] = hand.values[i-1];
         }
     }
 }

@@ -47,7 +47,7 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::Deck, pot: u32) {
+fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::Hand, pot: u32) {
    let qualified_players = players::qualified_players(players); 
 
     if qualified_players.len() == 1 {
@@ -58,8 +58,8 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::D
 
     	for j in qualified_players.iter() {
 			println!("Joueur {} :", j);
-			if !inout::ask_cards(&mut players[*j].deck, 2) { players[*j].state = 'f'; }
-            inout::print_cards(&players[*j].deck);
+			if !inout::ask_cards(&mut players[*j].hand, 2) { players[*j].state = 'f'; }
+            inout::print_cards(&players[*j].hand);
 		}
 
         let to_ask = table.cards_number - table.known_cards_number;
@@ -77,7 +77,7 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::D
 			//nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
             //pjoueur = joueurQualifieSuivant(pjoueur);
             for j in qualified_players.iter() {
-                let mut player_cards = cards::merge_decks(&table, &players[*j].deck);
+                let mut player_cards = cards::merge_hands(&table, &players[*j].hand);
                 inout::print_cards(&player_cards);
                 combinations::combination_type(&mut player_cards, &mut player_combination);
                 println!("Player {}:", *j);
@@ -127,7 +127,7 @@ fn main() {
     let mut small_blind: u32 = game_settings.first_blind;
     // variables to reinitialize at the beginning of each hand
     let (mut pot, mut round_n): (u32, usize);
-    let mut table = cards::Deck::new(5);
+    let mut table = cards::Hand::new(5);
     // variables to reinitialize at the beginning of each round
     let (mut to_bet, mut raise_value): (u32, u32);
     // auxiliary variables
@@ -155,7 +155,7 @@ fn main() {
         println!("*** Main numéro {} Préparation   ***\n", hand_n);
         if players[0].state == 'i' {
             println!("Vos cartes :");
-            inout::ask_cards(&mut players[0].deck, 2);
+            inout::ask_cards(&mut players[0].hand, 2);
             
         }
 		// lorsqu'il n'y a plus que 2 joueurs en lice (« Heads-up »), le dealer est small blind

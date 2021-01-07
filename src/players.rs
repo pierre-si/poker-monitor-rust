@@ -11,7 +11,7 @@ pub struct Player {
     pub total_bet: u32,
     pub state: char, // i : in (en jeu, actif) ; f : fold (passif); a : all-in (passif); o : out (hors-jeu);
 
-    pub deck: cards::Deck,
+    pub hand: cards::Hand,
     raises_history: [usize; 7] // nombre de raises effectués au cours du tour (0 que des check ou call), -1 fold (ajouté en plus de l'historique du tour) => taille max : 5
 }
 
@@ -23,7 +23,7 @@ impl Player {
             round_bet: 0,
             total_bet: 0,
             state: 'i',
-            deck: cards::Deck::new(2),
+            hand: cards::Hand::new(2),
             raises_history: [0; 7]
         }
     }
@@ -122,7 +122,7 @@ pub fn reset_round(players: &mut Vec<Player>) {
 pub fn reset_hand(players: &mut Vec<Player>) {
     for player in players {
         player.total_bet = 0;
-        player.deck.reset_cards();
+        player.hand.reset_cards();
         if player.cash <= 0 {
             player.cash = 0;
             player.state = 'o';
