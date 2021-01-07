@@ -13,8 +13,8 @@ pub fn print_cards(hand: &cards::Hand) {
     let values_names = ["Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi", "As"];
     let suits_names = ["trèfle", "carreau", "cœur", "pique"];
 
-    println!("La main comporte {} cartes et {} places vides", hand.known_cards_number, hand.cards_number-hand.known_cards_number);
-    for i in 0..hand.known_cards_number {
+    println!("La main comporte {} cartes et {} places vides", hand.values.len(), hand.cards_number-hand.values.len());
+    for i in 0..hand.values.len() {
         println!("Carte {:2} : {} de {}", i+1, values_names[(hand.values[i]-1) as usize], suits_names[(hand.suits[i]-1) as usize]);
     }
 }
@@ -39,7 +39,6 @@ mod test_print {
     fn print_hand() {
         let dummy_hand = cards::Hand {
             cards_number: 4,
-            known_cards_number: 3,
 
             values: vec![10, 11, 12, 0],
             suits: vec![1, 2, 3, 4],
@@ -96,24 +95,24 @@ pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, ra
 pub fn ask_cards(hand: &mut cards::Hand, n_cards: usize) -> bool {
     let mut input = String::new();
 
-    for i in hand.known_cards_number..std::cmp::min(hand.known_cards_number+n_cards, hand.cards_number) {
+    for i in 0..std::cmp::min(n_cards, hand.cards_number-hand.values.len()) {
         loop {
-            println!("CARD {} VALUE: ", i+1);
+            println!("CARD {} VALUE: ", hand.values.len()+1);
             input.clear();
             io::stdin().read_line(&mut input).expect("failed to read line");
             let ch = input.chars().next().unwrap();
             let digit = ch.to_digit(10);
             match digit {
                 Some(0) => continue,
-                Some(1) => hand.values[i] = 14,
-                Some(d) => hand.values[i] = d,
+                Some(1) => hand.values.push(14),
+                Some(d) => hand.values.push(d),
                 None => match ch {
-                    't' | 'T' => hand.values[i] = 10,
-                    'j' | 'J' => hand.values[i] = 11,
-                    'q' | 'Q' => hand.values[i] = 12,
-                    'k' | 'K' => hand.values[i] = 13,
-                    'a' | 'A' => hand.values[i] = 14,
-                    'c' | 'C' => if i == hand.known_cards_number { return false },
+                    't' | 'T' => hand.values.push(10),
+                    'j' | 'J' => hand.values.push(11),
+                    'q' | 'Q' => hand.values.push(12),
+                    'k' | 'K' => hand.values.push(13),
+                    'a' | 'A' => hand.values.push(14),
+                    'c' | 'C' => if hand.values.len() == 0 { return false },
                     _ => continue,
                 }
             }
@@ -125,16 +124,14 @@ pub fn ask_cards(hand: &mut cards::Hand, n_cards: usize) -> bool {
             io::stdin().read_line(&mut input).expect("failed to read line");
             let ch = input.chars().next().unwrap();
             match ch {
-                'c' | 'C' => hand.suits[i] = 1,
-                'd' | 'D' => hand.suits[i] = 2,
-                'h' | 'H' => hand.suits[i] = 3,
-                's' | 'S' => hand.suits[i] = 4,
+                'c' | 'C' => hand.suits.push(1),
+                'd' | 'D' => hand.suits.push(2),
+                'h' | 'H' => hand.suits.push(3),
+                's' | 'S' => hand.suits.push(4),
                 _ => continue,
             }
             break; 
         }
     }
-    hand.known_cards_number += n_cards;
-    if hand.known_cards_number > hand.cards_number { hand.known_cards_number = hand.cards_number }
     true
 }

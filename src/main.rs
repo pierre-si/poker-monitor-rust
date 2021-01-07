@@ -62,7 +62,7 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::H
             inout::print_cards(&players[*j].hand);
 		}
 
-        let to_ask = table.cards_number - table.known_cards_number;
+        let to_ask = table.cards_number - table.values.len();
         inout::ask_cards(&mut table, to_ask); 
 		// tant qu'il y a de l'argent à distribuer on cherche des gagnants
         let mut distributed_amount = 0;

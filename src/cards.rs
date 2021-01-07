@@ -6,7 +6,6 @@
 #[derive(Debug)]
 pub struct Hand {
     pub cards_number: usize,
-    pub known_cards_number: usize,
 
     pub values: Vec<u32>, // 0 indéterminé, 1 as, 2 deux, …, 10 dix, 11 valet, 12 dame, 13 roi, (14 as accessoirement)
     pub suits: Vec<u32>, // 0 indéterminé, 1 trèfle, 2 carreau, 3 cœur, 4 pique.
@@ -16,15 +15,13 @@ impl Hand {
     pub fn new(cards_number: usize) -> Hand {
         Hand {
             cards_number: cards_number,
-            known_cards_number: 0,
 
-            values: vec![0; cards_number],
-            suits: vec![0; cards_number]
+            values: vec![],
+            suits: vec![],
         }
     }
 
     pub fn reset_cards(&mut self) {
-        self.known_cards_number = 0;
         for value in &mut self.values { *value = 0; }
         for suit in &mut self.suits { *suit = 0; }
     }
@@ -34,7 +31,7 @@ impl Hand {
         let mut value: u32;
         let mut suit: u32;
         let mut j: usize;
-        for i in 0..self.known_cards_number {
+        for i in 0..self.values.len() {
             value = self.values[i];
             suit = self.suits[i];
             j = i;
@@ -49,12 +46,12 @@ impl Hand {
     }
 
     pub fn compare_with(&self, other: &Hand) -> std::cmp::Ordering {
-        if self.known_cards_number > other.known_cards_number {
+        if self.values.len() > other.values.len() {
             return std::cmp::Ordering::Greater
-        } else if self.known_cards_number < other.known_cards_number {
+        } else if self.values.len() < other.values.len() {
             return std::cmp::Ordering::Less
         } else {
-            for i in 0..self.known_cards_number {
+            for i in 0..self.values.len() {
                 if self.values[i] > other.values[i] { return std::cmp::Ordering::Greater }
                 if self.values[i] < other.values[i] { return std::cmp::Ordering::Less }
             }
@@ -66,15 +63,14 @@ impl Hand {
 
 pub fn merge_hands(first_hand: &Hand, second_hand: &Hand) -> Hand {
     let mut merge = Hand::new(first_hand.cards_number + second_hand.cards_number);
-    merge.known_cards_number = first_hand.known_cards_number + second_hand.known_cards_number;
 
-    for i in 0..first_hand.known_cards_number {
-        merge.values[i] = first_hand.values[i];
-        merge.suits[i] = first_hand.suits[i];
+    for i in 0..first_hand.values.len() {
+        merge.values.push(first_hand.values[i]);
+        merge.suits.push(first_hand.suits[i]);
     }
-    for i in first_hand.known_cards_number..first_hand.known_cards_number+second_hand.known_cards_number {
-        merge.values[i] = second_hand.values[i - first_hand.known_cards_number];
-        merge.suits[i] = second_hand.suits[i - first_hand.known_cards_number];
+    for i in 0..second_hand.values.len() {
+        merge.values.push(second_hand.values[i]);
+        merge.suits.push(second_hand.suits[i]);
     }
     merge
 }
@@ -106,11 +102,11 @@ mod test_print {
     #[test]
     fn two_hands_sort() {
         let mut hands = vec![
-            Hand{cards_number: 4, known_cards_number: 2, values: vec![11, 4], suits: vec![2, 2]},
-            Hand{cards_number: 4, known_cards_number: 3, values: vec![11, 4, 6], suits: vec![2, 1, 3]},
+            Hand{cards_number: 4, values: vec![11, 4], suits: vec![2, 2]},
+            Hand{cards_number: 4, values: vec![11, 4, 6], suits: vec![2, 1, 3]},
         ];
 
         sort_hands(&mut hands);
-        assert_eq!(hands[0].known_cards_number, 3);
+        assert_eq!(hands[0].values.len(), 3);
     }
 }
