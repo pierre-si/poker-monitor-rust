@@ -77,16 +77,15 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::D
 			//nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
             //pjoueur = joueurQualifieSuivant(pjoueur);
             for j in qualified_players.iter() {
-                let player_cards = cards::merge_decks(&table, &players[*j].deck);
+                let mut player_cards = cards::merge_decks(&table, &players[*j].deck);
                 inout::print_cards(&player_cards);
-            }
-            for j in qualified_players.iter() {
-                combinations::combination_type(&mut players[*j].deck, &mut player_combination);
+                combinations::combination_type(&mut player_cards, &mut player_combination);
                 println!("Player {}:", *j);
                 inout::print_combination(&player_combination);
                 if combinations::compare_combinations(&player_combination, &winners_combinations) == 1 {
                     winners = vec![*j];
-                    combinations::combination_type(&mut players[*j].deck, &mut winners_combinations);
+                    // nouvel appel à combination_type probablement inutile…
+                    combinations::combination_type(&mut player_cards, &mut winners_combinations);
                 } else if combinations::compare_combinations(&player_combination, &winners_combinations) == 2 {
                     winners.push(*j);
                 }
@@ -143,7 +142,7 @@ fn main() {
     let mut dealer: usize = inout::ask_player_number(&players);
     let mut player_small_blind: usize = players::next_active_player(&players, dealer);
     let mut player_big_blind: usize = players::next_active_player(&players, player_small_blind);
-
+    
     // même jeu
     loop {
         // préparation de la main
@@ -152,7 +151,6 @@ fn main() {
         pot = 0;
         round_n = 1;
         table.reset_cards();
-        println!("{:?}", table);
         // Initialisation du premier tour
         println!("*** Main numéro {} Préparation   ***\n", hand_n);
         if players[0].state == 'i' {
@@ -212,6 +210,7 @@ fn main() {
         pot_distribution(&mut players, &mut table, pot);
         players::reset_hand(&mut players);
         dealer = player_small_blind;
+        // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
         player_small_blind = player_big_blind;
         player_big_blind = players::next_active_player(&players, player_big_blind);
         if hand_n % game_settings.blinds_raise_interval == 0 { small_blind *= 2; }
