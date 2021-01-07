@@ -22,7 +22,7 @@ pub fn print_cards(deck: &cards::Deck) {
 pub fn print_combination(comb: &[u32]) {
     let combinations_names = ["Carte haute", "Paire", "Deux paires", "Brelan", "Quinte", "Couleur", "Full", "Carré", "Quinte couleur", "Quinte royale"];
     let values_names = ["Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi", "As"];
-    println!("{}", combinations_names[(comb[0]-1) as usize]);
+    print!("{}", combinations_names[(comb[0]-1) as usize]);
     let mut i = 1;
     while i < 6 && comb[i] != 0 {
         print!("{} ", values_names[(comb[i]-1) as usize]);
@@ -104,6 +104,7 @@ pub fn ask_cards(deck: &mut cards::Deck, n_cards: usize) -> bool {
             let ch = input.chars().next().unwrap();
             let digit = ch.to_digit(10);
             match digit {
+                Some(0) => continue,
                 Some(1) => deck.values[i] = 14,
                 Some(d) => deck.values[i] = d,
                 None => match ch {
