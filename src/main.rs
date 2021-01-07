@@ -67,7 +67,6 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::H
 		// tant qu'il y a de l'argent à distribuer on cherche des gagnants
         let mut distributed_amount = 0;
         let mut to_distribute = 0;
-        let mut winners_count = 0;
         let mut winners = vec![];
         let mut winners_combinations = [0; 6];
 
