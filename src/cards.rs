@@ -1,6 +1,8 @@
 // usize / isize when the variable is related to memory size (size of an object, index of a vector)
 // i32 / u64 / … when the variable is a number
 
+// je pensais devoir implémenter Clone sur Deck pour régler les problèmes de combinations (le clonage permettant de les enregistrer dans le vecteur de decks), mais finalement pas besoin, il est possible de créer les vecteurs de decks dans les fonctions appelées par combination_type et de renvoyer l'ownership de ces derniers à combination_type
+// je pensais aussi essayer de créer un vec vide dans type_combination, de passer sa ref mut aux sous fonctions et de push à l'intérieur des sous fonctions.
 #[derive(Debug)]
 pub struct Deck {
     pub cards_number: usize,
@@ -47,9 +49,16 @@ impl Deck {
     }
 
     pub fn compare_with(&self, other: &Deck) -> std::cmp::Ordering {
-        for i in 0..self.known_cards_number {
-            if self.values[i] > other.values[i] { return std::cmp::Ordering::Greater }
-            if self.values[i] < other.values[i] { return std::cmp::Ordering::Less }
+        println!("{} {}", self.known_cards_number, other.known_cards_number);
+        if self.known_cards_number > other.known_cards_number {
+            return std::cmp::Ordering::Greater
+        } else if self.known_cards_number < other.known_cards_number {
+            return std::cmp::Ordering::Less
+        } else {
+            for i in 0..self.known_cards_number {
+                if self.values[i] > other.values[i] { return std::cmp::Ordering::Greater }
+                if self.values[i] < other.values[i] { return std::cmp::Ordering::Less }
+            }
         }
 
         std::cmp::Ordering::Equal
@@ -72,8 +81,9 @@ pub fn merge_decks(first_deck: &Deck, second_deck: &Deck) -> Deck {
 }
 
 pub fn sort_decks(decks: &mut Vec<Deck>) {
-    decks.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse().then(a.compare_with(b).reverse())
-    });
+    decks.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse() })
+    // pb : then() est semble être exécuté même si la première comparaison n'est pas equal.
+    //decks.sort_by(|a, b| { a.known_cards_number.cmp(&b.known_cards_number).reverse().then(a.compare_with(b).reverse())});
 /*
     let mut j: usize;
     for i in 0..decks.len() {
@@ -88,4 +98,20 @@ pub fn sort_decks(decks: &mut Vec<Deck>) {
         decks[j] = current;
     }
 */
+}
+
+#[cfg(test)]
+mod test_print {
+    use super::*;
+
+    #[test]
+    fn two_decks_sort() {
+        let mut decks = vec![
+            Deck{cards_number: 4, known_cards_number: 2, values: vec![11, 4], suits: vec![2, 2]},
+            Deck{cards_number: 4, known_cards_number: 3, values: vec![11, 4, 6], suits: vec![2, 1, 3]},
+        ];
+
+        sort_decks(&mut decks);
+        assert_eq!(decks[0].known_cards_number, 3);
+    }
 }
