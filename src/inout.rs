@@ -22,7 +22,7 @@ pub fn print_cards(hand: &cards::Hand) {
 pub fn print_combination(comb: &[u32]) {
     let combinations_names = ["Carte haute", "Paire", "Deux paires", "Brelan", "Quinte", "Couleur", "Full", "Carré", "Quinte couleur", "Quinte royale"];
     let values_names = ["Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Valet", "Dame", "Roi", "As"];
-    print!("{}", combinations_names[(comb[0]-1) as usize]);
+    print!("{} ", combinations_names[(comb[0]-1) as usize]);
     let mut i = 1;
     while i < 6 && comb[i] != 0 {
         print!("{} ", values_names[(comb[i]-1) as usize]);
@@ -119,7 +119,7 @@ pub fn ask_cards(hand: &mut cards::Hand, n_cards: usize) -> bool {
             break;
         }
         loop {
-            println!("CARD {} SUIT: ", i+1);
+            println!("CARD {} SUIT: ", hand.values.len());
             input.clear();
             io::stdin().read_line(&mut input).expect("failed to read line");
             let ch = input.chars().next().unwrap();
