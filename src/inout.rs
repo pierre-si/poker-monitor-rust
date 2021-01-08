@@ -3,7 +3,7 @@ use crate::players;
 use crate::cards;
 
 //TODO mettre dans players.rs
-pub fn print_players(players: &Vec<players::Player>){
+pub fn print_players(players: &[players::Player]){
     for player in players {
         println!("Joueur numéro {} possède {} dollars et a pour état {}", player.number, player.cash, player.state);
     }
@@ -54,6 +54,7 @@ mod test_print {
 }
 
 //TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
+// régler le cas ou ce n'est pas un nombre => panic.
 pub fn ask_player_number(players_count: u32) -> usize {
     let mut input = String::new();
     let mut number: u32;
@@ -67,7 +68,7 @@ pub fn ask_player_number(players_count: u32) -> usize {
     return number as usize;
 }
 
-pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, raise_value: u32) -> char {
+pub fn ask_action(players: &[players::Player], player: usize, to_bet: u32, raise_value: u32) -> char {
 	if player == 0 {
 		println!("========= VOUS ARGENT {:5} =========\n", players[player].cash);
 	} else{
