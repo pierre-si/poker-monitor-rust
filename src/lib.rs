@@ -101,6 +101,13 @@ impl Game {
         }
     }
 
+    pub fn rotate_buttons(&self) {
+        self.dealer_index = self.small_blind_index;
+        // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
+        self.small_blind_index = self.big_blind_index;
+        self.big_blind_index = self.next_active_player(self.big_blind_index);
+    }
+
     pub fn next_active_player(&self, starting_with: usize) -> usize {
         if starting_with >= self.players.len(){
             println!("Appel de next_active_player avec un indice de joueur trop grand !\n");

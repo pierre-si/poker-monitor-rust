@@ -151,10 +151,7 @@ fn main() {
             if game.active_players_count() <= 1 || game.round_number >= 5 { break; } 
         }
         //pot_distribution(&mut players, &mut table, pot);
-        dealer = player_small_blind;
-        // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
-        player_small_blind = player_big_blind;
-        player_big_blind = players::next_active_player(&players, player_big_blind);
+        game.rotate_buttons();
         if hand_n % game_settings.blinds_raise_interval == 0 { small_blind *= 2; }
         if players::active_players_count(&players) <= 1 { break; }
     }
