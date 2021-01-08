@@ -5,6 +5,7 @@ use crate::inout;
 pub struct Game {
     pub players: Vec<players::Player>,
     pub small_blind: u32,
+    N_CARDS_TO_DEAL: [usize; 4],
     // hand variables
     dealer_index: usize,
     small_blind_index: usize,
@@ -27,6 +28,7 @@ impl Game {
         Game {
             players: players::create_players(players_count, start_cash),
             small_blind,
+            N_CARDS_TO_DEAL: [0, 3, 1, 1],
 
             dealer_index: dealer_index, 
             small_blind_index: small_blind_index, 
@@ -45,7 +47,7 @@ impl Game {
         self.hand_number += 1;
         self.pot = 0;
         self.table.reset_cards();
-        self.round_number = 1;
+        self.round_number = 0;
 
         if self.players[0].state == 'i' {
             println!("Vos cartes :");
@@ -68,16 +70,23 @@ impl Game {
 
         self.to_bet = self.small_blind*2;
         self.raise_value = self.small_blind*2;
-        let current_player = self.next_active_player(self.big_blind_index);
     }
     
-    pub fn initialize_round(&self) {
+    pub fn initialize_round(&self) -> usize {
         self.round_number += 1;
         self.to_bet = 0;
         self.raise_value = 2*self.small_blind;
         for player in self.players {
             player.total_bet += player.round_bet;
             player.round_bet = 0;
+        }
+        inout::ask_cards(&mut self.table, self.N_CARDS_TO_DEAL[self.round_number-1]);
+        // le premier joueur actif après le dealer commence le tour
+        // premier tour : la mise des blinds est déjà faite
+        if self.round_number == 1 {
+            self.next_active_player(self.big_blind_index)
+        } else {
+            self.next_active_player(self.dealer_index)
         }
     }
 

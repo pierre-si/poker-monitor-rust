@@ -114,7 +114,6 @@ fn pot_distribution(game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
 }
 
 fn main() {
-    const N_CARDS_TO_DEAL: [usize; 4] = [0, 3, 1, 1];
     let args: Vec<String> = env::args().collect();
 
     let game_settings = parse_command(&args);
@@ -134,28 +133,24 @@ fn main() {
         game.initialize_hand();
         loop{ // same hand
             println!("\n*** Main numéro {:2}  Tour numéro {} ***", game.hand_number, game.round_number);
-            inout::ask_cards(&mut game.table, N_CARDS_TO_DEAL[game.round_number-1]);
+            current_player = game.initialize_round();
             
 			min_players_count = game.active_players_count();
             player_n = 0;
 			loop{ // same round
-                println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", pot, to_bet, raise_value);
-                let action = inout::ask_action(&players, current_player, to_bet, raise_value);
-                players[current_player].action(action, &mut pot, &mut to_bet, &mut raise_value);
-                current_player = players::next_active_player(&players, current_player);
+                println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", game.pot, game.to_bet, game.raise_value);
+                let action = inout::ask_action(&game.players, current_player, game.to_bet, game.raise_value);
+                game.players[current_player].action(action, &mut game.pot, &mut game.to_bet, &mut game.raise_value);
+                current_player = game.next_active_player(current_player);
                 player_n += 1;
                 // les joueurs actifs au début du tour doivent jouer au moins une fois
-                if players[current_player].state != 'i' || (player_n >= min_players_count && players[current_player].round_bet == to_bet) {
+                if game.players[current_player].state != 'i' || (player_n >= min_players_count && game.players[current_player].round_bet == game.to_bet) {
                     break;
                 }
 			}
-            // Préparation du tour suivant //
-            game.initialize_round();
-			// le premier joueur actif après le dealer commence le tour
-            current_player = players::next_active_player(&players, dealer);
-            if players::active_players_count(&players) <= 1 || round_n >= 5 { break; } 
+            if game.active_players_count() <= 1 || game.round_number >= 5 { break; } 
         }
-        pot_distribution(&mut players, &mut table, pot);
+        //pot_distribution(&mut players, &mut table, pot);
         players::reset_hand(&mut players);
         dealer = player_small_blind;
         // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
