@@ -1,6 +1,12 @@
-use crate::cards;
-use crate::players;
-use crate::inout;
+mod inout;
+mod cards;
+mod players;
+mod combinations;
+
+pub use crate::inout::*;
+pub use crate::cards::*;
+pub use crate::players::*;
+pub use crate::combinations::*;
 
 pub struct Game {
     pub players: Vec<players::Player>,
@@ -45,7 +51,38 @@ impl Game {
         }
     }
 
-    pub fn initialize_hand(&self) {
+    pub fn run(&mut self) {
+        loop { // same game
+            println!("*** Main numéro {} Préparation   ***", self.hand_number);
+            self.initialize_hand();
+            let (mut player_n, mut min_players_count): (u32, u32);
+            let mut current_player: usize;
+            loop{ // same hand
+                println!("\n*** Main numéro {:2}  Tour numéro {} ***", self.hand_number, self.round_number);
+                current_player = self.initialize_round();
+                
+                min_players_count = self.active_players_count();
+                player_n = 0;
+                loop{ // same round
+                    println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", self.pot, self.to_bet, self.raise_value);
+                    let action = inout::ask_action(&self.players, current_player, self.to_bet, self.raise_value);
+                    self.players[current_player].action(action, &mut self.pot, &mut self.to_bet, &mut self.raise_value);
+                    current_player = self.next_active_player(current_player);
+                    player_n += 1;
+                    // les joueurs actifs au début du tour doivent jouer au moins une fois
+                    if self.players[current_player].state != 'i' || (player_n >= min_players_count && self.players[current_player].round_bet == self.to_bet) {
+                        break;
+                    }
+                }
+                if self.active_players_count() <= 1 || self.round_number >= 5 { break; } 
+            }
+            //pot_distribution(&mut players, &mut table, pot);
+            self.rotate_buttons();
+            if self.active_players_count() <= 1 { break; }
+        }
+    }
+
+    pub fn initialize_hand(&mut self) {
         self.hand_number += 1;
         if self.hand_number % self.blinds_raise_interval == 0 { self.small_blind *= 2; }
         self.pot = 0;
@@ -53,7 +90,7 @@ impl Game {
         self.round_number = 0;
 
         // reset players hands and check cash
-        for player in self.players {
+        for player in &mut self.players {
             player.total_bet = 0;
             player.hand.reset_cards();
             if player.cash <= 0 {
@@ -86,11 +123,11 @@ impl Game {
         self.raise_value = self.small_blind*2;
     }
     
-    pub fn initialize_round(&self) -> usize {
+    pub fn initialize_round(&mut self) -> usize {
         self.round_number += 1;
         self.to_bet = 0;
         self.raise_value = 2*self.small_blind;
-        for player in self.players {
+        for player in &mut self.players {
             player.total_bet += player.round_bet;
             player.round_bet = 0;
         }
@@ -104,7 +141,7 @@ impl Game {
         }
     }
 
-    pub fn rotate_buttons(&self) {
+    pub fn rotate_buttons(&mut self) {
         self.dealer_index = self.small_blind_index;
         // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
         self.small_blind_index = self.big_blind_index;
@@ -127,7 +164,7 @@ impl Game {
 
     pub fn active_players_count(&self) -> u32 {
         let mut number = 0;
-        for player in self.players {
+        for player in &self.players {
             if player.state == 'i' { number += 1 }
         }
         number

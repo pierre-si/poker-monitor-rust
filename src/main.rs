@@ -2,11 +2,11 @@ use std::env;
 extern crate getopts;
 use getopts::Options;
 
+use monitor::Game;
 mod inout;
 mod cards;
 mod players;
 mod combinations;
-mod lib;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {}
@@ -48,7 +48,7 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn pot_distribution(mut game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
+fn pot_distribution(mut game: Game, mut table: &mut cards::Hand, pot: u32) {
    let qualified_players = game.qualified_players(); 
 
     if qualified_players.len() == 1 {
@@ -121,38 +121,11 @@ fn main() {
         Some(settings) => settings,
         None => return,
     };
-    let mut game = lib::Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind, game_settings.blinds_raise_interval);
+    let mut game = Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind, game_settings.blinds_raise_interval);
     // auxiliary variables
     let (mut player_n, mut min_players_count): (u32, u32);
     let mut current_player: usize;
-    // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
-    
-    loop { // same game
-        println!("*** Main numéro {} Préparation   ***", game.hand_number);
-        game.initialize_hand();
-        loop{ // same hand
-            println!("\n*** Main numéro {:2}  Tour numéro {} ***", game.hand_number, game.round_number);
-            current_player = game.initialize_round();
-            
-			min_players_count = game.active_players_count();
-            player_n = 0;
-			loop{ // same round
-                println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", game.pot, game.to_bet, game.raise_value);
-                let action = inout::ask_action(&game.players, current_player, game.to_bet, game.raise_value);
-                game.players[current_player].action(action, &mut game.pot, &mut game.to_bet, &mut game.raise_value);
-                current_player = game.next_active_player(current_player);
-                player_n += 1;
-                // les joueurs actifs au début du tour doivent jouer au moins une fois
-                if game.players[current_player].state != 'i' || (player_n >= min_players_count && game.players[current_player].round_bet == game.to_bet) {
-                    break;
-                }
-			}
-            if game.active_players_count() <= 1 || game.round_number >= 5 { break; } 
-        }
-        //pot_distribution(&mut players, &mut table, pot);
-        game.rotate_buttons();
-        if game.active_players_count() <= 1 { break; }
-    }
+    game.run(); 
     println!("Merci et à bientôt sur Monitor !");
 }
