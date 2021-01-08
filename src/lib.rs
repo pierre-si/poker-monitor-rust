@@ -167,7 +167,7 @@ impl Game {
             inout::ask_cards(&mut self.table, to_ask); 
             // tant qu'il y a de l'argent à distribuer on cherche des gagnants
             let mut distributed_amount = 0;
-            let mut to_distribute = 0;
+            let mut to_distribute;
             let mut winners = vec![];
             let mut winners_combinations = [0; 6];
 
