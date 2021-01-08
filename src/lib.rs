@@ -53,13 +53,13 @@ impl Game {
 
     pub fn run(&mut self) {
         loop { // same game
-            println!("*** Main numéro {} Préparation   ***", self.hand_number);
-            self.initialize_hand();
-            let (mut player_n, mut min_players_count): (u32, u32);
+            println!("*** Main numéro {} Préparation   ***", self.hand_number+1);
             let mut current_player: usize;
+            current_player = self.initialize_hand();
+            let (mut player_n, mut min_players_count): (u32, u32);
             loop{ // same hand
                 println!("\n*** Main numéro {:2}  Tour numéro {} ***", self.hand_number, self.round_number);
-                current_player = self.initialize_round();
+                inout::ask_cards(&mut self.table, self.N_CARDS_TO_DEAL[self.round_number-1]);
                 
                 min_players_count = self.active_players_count();
                 player_n = 0;
@@ -74,6 +74,7 @@ impl Game {
                         break;
                     }
                 }
+                current_player = self.finalize_round();
                 if self.active_players_count() <= 1 || self.round_number >= 5 { break; } 
             }
             self.distribute_pot();
@@ -82,12 +83,12 @@ impl Game {
         }
     }
 
-    pub fn initialize_hand(&mut self) {
+    pub fn initialize_hand(&mut self) -> usize {
         self.hand_number += 1;
         if self.hand_number % self.blinds_raise_interval == 0 { self.small_blind *= 2; }
         self.pot = 0;
         self.table.reset_cards();
-        self.round_number = 0;
+        self.round_number = 1;
 
         // reset players hands and check cash
         for player in &mut self.players {
@@ -121,24 +122,20 @@ impl Game {
 
         self.to_bet = self.small_blind*2;
         self.raise_value = self.small_blind*2;
+
+        self.next_active_player(self.big_blind_index)
     }
     
-    pub fn initialize_round(&mut self) -> usize {
+    pub fn finalize_round(&mut self) -> usize {
         self.round_number += 1;
-        self.to_bet = 0;
-        self.raise_value = 2*self.small_blind;
         for player in &mut self.players {
             player.total_bet += player.round_bet;
             player.round_bet = 0;
         }
-        inout::ask_cards(&mut self.table, self.N_CARDS_TO_DEAL[self.round_number-1]);
-        // le premier joueur actif après le dealer commence le tour
-        // premier tour : la mise des blinds est déjà faite
-        if self.round_number == 1 {
-            self.next_active_player(self.big_blind_index)
-        } else {
-            self.next_active_player(self.dealer_index)
-        }
+        self.to_bet = 0;
+        self.raise_value = 2*self.small_blind;
+        // le premier joueur actif après le dealer commence le tour suivant
+        self.next_active_player(self.dealer_index)
     }
 
     pub fn rotate_buttons(&mut self) {
@@ -192,7 +189,6 @@ impl Game {
                 let mut i = 0;
                 while i < winners.len() {
                     to_distribute = self.available_pot_amount(self.players[winners[i]].number as usize) - distributed_amount;
-                    println!("to distribute: {}", to_distribute);
                     if to_distribute > 0 {
                         for j in i..winners.len() {
                             println!("Joueur {} REMPORTE {}", self.players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
