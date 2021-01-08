@@ -114,11 +114,3 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
     }
     players
 }
-
-pub fn available_pot_amount(players: &Vec<Player>, initial: usize) -> u32 {
-    let mut amount = 0;
-    for player in players {
-        amount += if player.total_bet > players[initial].total_bet {players[initial].total_bet} else { player.total_bet };
-    }
-    amount
-}

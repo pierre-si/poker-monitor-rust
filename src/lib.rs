@@ -174,8 +174,6 @@ impl Game {
             let mut player_combination = [0; 6];
             while distributed_amount < self.pot {
                 winners_combinations[0] = 0;
-                //nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
-                //pjoueur = joueurQualifieSuivant(pjoueur);
                 for j in qualified_players.iter() {
                     let mut player_cards = cards::merge_hands(&self.table, &self.players[*j].hand);
                     inout::print_cards(&player_cards);
@@ -193,7 +191,8 @@ impl Game {
                 winners.sort_by_key(|k| self.players[*k].total_bet);
                 let mut i = 0;
                 while i < winners.len() {
-                    to_distribute = players::available_pot_amount(&self.players, self.players[winners[i]].number as usize) - distributed_amount;
+                    to_distribute = self.available_pot_amount(self.players[winners[i]].number as usize) - distributed_amount;
+                    println!("to distribute: {}", to_distribute);
                     if to_distribute > 0 {
                         for j in i..winners.len() {
                             println!("Joueur {} REMPORTE {}", self.players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
@@ -211,6 +210,14 @@ impl Game {
                 }
             }
         }
+    }
+
+    fn available_pot_amount(&self, for_player: usize) -> u32 {
+        let mut amount = 0;
+        for player in self.players.iter() {
+            amount += if player.total_bet > self.players[for_player].total_bet {self.players[for_player].total_bet} else { player.total_bet };
+        }
+        amount
     }
 
     pub fn next_active_player(&self, starting_with: usize) -> usize {
