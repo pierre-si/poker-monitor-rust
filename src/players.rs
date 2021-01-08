@@ -132,36 +132,6 @@ pub fn reset_hand(players: &mut Vec<Player>) {
     }
 }
 
-pub fn active_players_count(players: &Vec<Player>) -> u32 {
-    let mut number = 0;
-    for player in players {
-        if player.state == 'i' { number += 1 }
-    }
-    number
-}
-
-pub fn qualified_players(players: &Vec<Player>) -> Vec<usize> {
-    let mut qualified_players = Vec::new();
-    for (i, player) in players.iter().enumerate() {
-        if player.state == 'i' || player.state == 'a' { qualified_players.push(i) }
-    }
-    qualified_players 
-}
-
-pub fn next_active_player(players: &Vec<Player>, starting_with: usize) -> usize {
-    if starting_with >= players.len(){
-        println!("Appel de next_active_player avec un indice de joueur trop grand !\n");
-        std::process::exit(100);
-    }
-    let mut i: usize = starting_with;
-    loop { // apparemment il n'est pas possible d'utiliser l'itérateur cycle sur un vector
-        i += 1;
-        if i == players.len() {i = 0}
-        if players[i].state == 'i' || i == starting_with { break; }
-    }
-    return i
-}
-
 pub fn available_pot_amount(players: &Vec<Player>, initial: usize) -> u32 {
     let mut amount = 0;
     for player in players {
