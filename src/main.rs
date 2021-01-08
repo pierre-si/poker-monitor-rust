@@ -128,20 +128,17 @@ fn main() {
     let mut current_player: usize;
     // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
-    // même jeu
-    loop {
-        // Initialisation du premier tour
+    
+    loop { // same game
         println!("*** Main numéro {} Préparation   ***", game.hand_number);
         game.initialize_hand();
-        // same hand
-        loop{
+        loop{ // same hand
             println!("\n*** Main numéro {:2}  Tour numéro {} ***", game.hand_number, game.round_number);
             inout::ask_cards(&mut game.table, N_CARDS_TO_DEAL[game.round_number-1]);
             
 			min_players_count = game.active_players_count();
             player_n = 0;
-            // same round
-			loop{
+			loop{ // same round
                 println!("\nPOT  {:5}  REQUIS {:5}  RAISE {:5}", pot, to_bet, raise_value);
                 let action = inout::ask_action(&players, current_player, to_bet, raise_value);
                 players[current_player].action(action, &mut pot, &mut to_bet, &mut raise_value);
