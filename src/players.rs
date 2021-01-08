@@ -113,12 +113,7 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
     players
 }
 
-pub fn reset_round(players: &mut Vec<Player>) {
-    for player in players {
-        player.total_bet += player.round_bet;
-        player.round_bet = 0;
-    }
-}
+
 pub fn reset_hand(players: &mut Vec<Player>) {
     for player in players {
         player.total_bet = 0;

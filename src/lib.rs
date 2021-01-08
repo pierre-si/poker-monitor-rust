@@ -35,6 +35,16 @@ impl Game {
         self.round_number = 1;
     }
     
+    pub fn initialize_round(&self) {
+        self.round_number += 1;
+        self.to_bet = 0;
+        self.raise_value = 2*self.small_blind;
+        for player in self.players {
+            player.total_bet += player.round_bet;
+            player.round_bet = 0;
+        }
+    }
+
     pub fn next_active_player(&self, starting_with: usize) -> usize {
         if starting_with >= self.players.len(){
             println!("Appel de next_active_player avec un indice de joueur trop grand !\n");
