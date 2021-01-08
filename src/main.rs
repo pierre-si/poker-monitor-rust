@@ -6,6 +6,7 @@ mod inout;
 mod cards;
 mod players;
 mod combinations;
+mod lib;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {}
@@ -47,19 +48,19 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::Hand, pot: u32) {
-   let qualified_players = players::qualified_players(players); 
+fn pot_distribution(game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
+   let qualified_players = game.qualified_players(); 
 
     if qualified_players.len() == 1 {
         println!("JOUEUR {} REMPORTE {}", qualified_players[0], pot);
-        players[qualified_players[0]].cash += pot;
+        game.players[qualified_players[0]].cash += pot;
     } else {
         println!("*** ABATTAGE ***");
 
     	for j in qualified_players.iter() {
 			println!("Joueur {} :", j);
-			if !inout::ask_cards(&mut players[*j].hand, 2) { players[*j].state = 'f'; }
-            inout::print_cards(&players[*j].hand);
+			if !inout::ask_cards(&mut game.players[*j].hand, 2) { game.players[*j].state = 'f'; }
+            inout::print_cards(&game.players[*j].hand);
 		}
 
         let to_ask = table.cards_number - table.values.len();
@@ -76,7 +77,7 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::H
 			//nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
             //pjoueur = joueurQualifieSuivant(pjoueur);
             for j in qualified_players.iter() {
-                let mut player_cards = cards::merge_hands(&table, &players[*j].hand);
+                let mut player_cards = cards::merge_hands(&table, &game.players[*j].hand);
                 inout::print_cards(&player_cards);
                 combinations::combination_type(&mut player_cards, &mut player_combination);
                 println!("Player {}:", *j);
@@ -89,23 +90,23 @@ fn pot_distribution(players: &mut Vec<players::Player>, mut table: &mut cards::H
                     winners.push(*j);
                 }
             }
-            winners.sort_by_key(|k| players[*k].total_bet);
+            winners.sort_by_key(|k| game.players[*k].total_bet);
             let mut i = 0;
             while i < winners.len() {
-                to_distribute = players::available_pot_amount(players, players[winners[i]].number as usize) - distributed_amount;
+                to_distribute = players::available_pot_amount(&game.players, game.players[winners[i]].number as usize) - distributed_amount;
                 if to_distribute > 0 {
                     for j in i..winners.len() {
-                        println!("Joueur {} REMPORTE {}", players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
-                        players[winners[j]].cash += to_distribute / ((winners.len() - i) as u32);
+                        println!("Joueur {} REMPORTE {}", game.players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
+                        game.players[winners[j]].cash += to_distribute / ((winners.len() - i) as u32);
                     }
                     if to_distribute % ((winners.len() - i) as u32) != 0 {
                         println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
-                        let num = inout::ask_player_number(players); 
-                        players[num].cash += to_distribute % winners.len() as u32;
+                        let num = inout::ask_player_number(&game.players); 
+                        game.players[num].cash += to_distribute % winners.len() as u32;
                     }
                     distributed_amount += to_distribute;
                 }
-                players[winners[i]].state = 'f';
+                game.players[winners[i]].state = 'f';
                 i+=1;
             }
 		}
@@ -121,69 +122,54 @@ fn main() {
         Some(settings) => settings,
         None => return,
     };
-   // variables constant during a hand
-    let mut hand_n: u32 = 0;
-    let mut small_blind: u32 = game_settings.first_blind;
-    // variables to reinitialize at the beginning of each hand
-    let (mut pot, mut round_n): (u32, usize);
-    let mut table = cards::Hand::new(5);
-    // variables to reinitialize at the beginning of each round
-    let (mut to_bet, mut raise_value): (u32, u32);
+    let mut game = lib::Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind);
     // auxiliary variables
     let (mut player_n, mut min_players_count): (u32, u32);
     let mut current_player: usize;
-
-    // setup
-    let mut players = players::create_players(game_settings.n_players, game_settings.start_cash);
     // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
     println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
-    let mut dealer: usize = inout::ask_player_number(&players);
-    let mut player_small_blind: usize = players::next_active_player(&players, dealer);
-    let mut player_big_blind: usize = players::next_active_player(&players, player_small_blind);
+    let mut dealer: usize = inout::ask_player_number(&game.players);
+    let mut player_small_blind: usize = game.next_active_player(dealer);
+    let mut player_big_blind: usize = game.next_active_player(player_small_blind);
     
     // même jeu
     loop {
-        // préparation de la main
-        hand_n += 1;
-        // Réinitialisation des variables de la main
-        pot = 0;
-        round_n = 1;
-        table.reset_cards();
+        game.initialize_hand();
         // Initialisation du premier tour
-        println!("*** Main numéro {} Préparation   ***\n", hand_n);
-        if players[0].state == 'i' {
+        println!("*** Main numéro {} Préparation   ***", game.hand_number);
+        if game.players[0].state == 'i' {
             println!("Vos cartes :");
-            inout::ask_cards(&mut players[0].hand, 2);
+            inout::ask_cards(&mut game.players[0].hand, 2);
             
         }
 		// lorsqu'il n'y a plus que 2 joueurs en lice (« Heads-up »), le dealer est small blind
 		// il est nécessaire de recalculer psmallBlind au cas où le tour précédent comptait 3 joueurs et s'est achevé par
 		// la défaite du big blind.
-        if players::active_players_count(&players) == 2 {
-            player_small_blind = players::next_active_player(&players, player_big_blind);
+        if game.active_players_count() == 2 {
+            player_small_blind = game.next_active_player(player_big_blind);
             dealer = player_small_blind;
             current_player = dealer;
         }
 
-        if players[player_small_blind].state != 'o' {
-			println!("SMALL BLIND : JOUEUR {}   BET {:5}\n", player_small_blind, small_blind);
-            pot += players[player_small_blind].make_bet(small_blind);
+        if game.players[player_small_blind].state != 'o' {
+			println!("SMALL BLIND : JOUEUR {}   BET {:5}\n", player_small_blind, game.small_blind);
+            game.pot += game.players[player_small_blind].make_bet(game.small_blind);
         }
         
-        println!("BIG BLIND   : JOUEUR {}   BET {:5}\n", player_big_blind, small_blind*2);
-		pot += players[player_big_blind].make_bet(small_blind*2);
+        println!("BIG BLIND   : JOUEUR {}   BET {:5}\n", player_big_blind, game.small_blind*2);
+		game.pot += game.players[player_big_blind].make_bet(game.small_blind*2);
 
-        to_bet = small_blind*2;
-        raise_value = small_blind*2;
-        current_player = players::next_active_player(&players, player_big_blind);
+        game.to_bet = game.small_blind*2;
+        game.raise_value = game.small_blind*2;
+        current_player = game.next_active_player(player_big_blind);
 
         // same hand
         loop{
-            println!("\n*** Main numéro {:2}  Tour numéro {} ***", hand_n, round_n);
-            inout::ask_cards(&mut table, N_CARDS_TO_DEAL[round_n-1]);
+            println!("\n*** Main numéro {:2}  Tour numéro {} ***", game.hand_number, game.round_number);
+            inout::ask_cards(&mut game.table, N_CARDS_TO_DEAL[game.round_number-1]);
             
-			min_players_count = players::active_players_count(&players);
+			min_players_count = game.active_players_count();
             player_n = 0;
             // same round
 			loop{
@@ -197,11 +183,8 @@ fn main() {
                     break;
                 }
 			}
-			// Préparation du tour suivant //
-            round_n += 1;
-			to_bet = 0;
-            raise_value = small_blind*2;
-            players::reset_round(&mut players);
+            // Préparation du tour suivant //
+            game.initialize_round();
 			// le premier joueur actif après le dealer commence le tour
             current_player = players::next_active_player(&players, dealer);
             if players::active_players_count(&players) <= 1 || round_n >= 5 { break; } 
