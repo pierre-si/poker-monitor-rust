@@ -3,10 +3,6 @@ extern crate getopts;
 use getopts::Options;
 
 use monitor::Game;
-mod inout;
-mod cards;
-mod players;
-mod combinations;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {}
@@ -48,71 +44,6 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn pot_distribution(mut game: Game, mut table: &mut cards::Hand, pot: u32) {
-   let qualified_players = game.qualified_players(); 
-
-    if qualified_players.len() == 1 {
-        println!("JOUEUR {} REMPORTE {}", qualified_players[0], pot);
-        game.players[qualified_players[0]].cash += pot;
-    } else {
-        println!("*** ABATTAGE ***");
-
-    	for j in qualified_players.iter() {
-			println!("Joueur {} :", j);
-			if !inout::ask_cards(&mut game.players[*j].hand, 2) { game.players[*j].state = 'f'; }
-            inout::print_cards(&game.players[*j].hand);
-		}
-
-        let to_ask = table.cards_number - table.values.len();
-        inout::ask_cards(&mut table, to_ask); 
-		// tant qu'il y a de l'argent à distribuer on cherche des gagnants
-        let mut distributed_amount = 0;
-        let mut to_distribute = 0;
-        let mut winners = vec![];
-        let mut winners_combinations = [0; 6];
-
-        let mut player_combination = [0; 6];
- 		while distributed_amount < pot {
-			winners_combinations[0] = 0;
-			//nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
-            //pjoueur = joueurQualifieSuivant(pjoueur);
-            for j in qualified_players.iter() {
-                let mut player_cards = cards::merge_hands(&table, &game.players[*j].hand);
-                inout::print_cards(&player_cards);
-                combinations::combination_type(&mut player_cards, &mut player_combination);
-                println!("Player {}:", *j);
-                inout::print_combination(&player_combination);
-                if combinations::compare_combinations(&player_combination, &winners_combinations) == 1 {
-                    winners = vec![*j];
-                    // nouvel appel à combination_type probablement inutile…
-                    combinations::combination_type(&mut player_cards, &mut winners_combinations);
-                } else if combinations::compare_combinations(&player_combination, &winners_combinations) == 2 {
-                    winners.push(*j);
-                }
-            }
-            winners.sort_by_key(|k| game.players[*k].total_bet);
-            let mut i = 0;
-            while i < winners.len() {
-                to_distribute = players::available_pot_amount(&game.players, game.players[winners[i]].number as usize) - distributed_amount;
-                if to_distribute > 0 {
-                    for j in i..winners.len() {
-                        println!("Joueur {} REMPORTE {}", game.players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
-                        game.players[winners[j]].cash += to_distribute / ((winners.len() - i) as u32);
-                    }
-                    if to_distribute % ((winners.len() - i) as u32) != 0 {
-                        println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
-                        let num = inout::ask_player_number(game.players.len() as u32); 
-                        game.players[num].cash += to_distribute % winners.len() as u32;
-                    }
-                    distributed_amount += to_distribute;
-                }
-                game.players[winners[i]].state = 'f';
-                i+=1;
-            }
-		}
-	}
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -121,11 +52,8 @@ fn main() {
         Some(settings) => settings,
         None => return,
     };
-    let mut game = Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind, game_settings.blinds_raise_interval);
-    // auxiliary variables
-    let (mut player_n, mut min_players_count): (u32, u32);
-    let mut current_player: usize;
     println!("Bienvenue sur Monitor 0.42 !");
+    let mut game = Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind, game_settings.blinds_raise_interval);
     game.run(); 
     println!("Merci et à bientôt sur Monitor !");
 }

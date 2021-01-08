@@ -76,7 +76,7 @@ impl Game {
                 }
                 if self.active_players_count() <= 1 || self.round_number >= 5 { break; } 
             }
-            //pot_distribution(&mut players, &mut table, pot);
+            self.distribute_pot();
             self.rotate_buttons();
             if self.active_players_count() <= 1 { break; }
         }
@@ -146,6 +146,71 @@ impl Game {
         // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
         self.small_blind_index = self.big_blind_index;
         self.big_blind_index = self.next_active_player(self.big_blind_index);
+    }
+
+    fn distribute_pot(&mut self) {
+        let qualified_players = self.qualified_players(); 
+
+        if qualified_players.len() == 1 {
+            println!("JOUEUR {} REMPORTE {}", qualified_players[0], self.pot);
+            self.players[qualified_players[0]].cash += self.pot;
+        } else {
+            println!("*** ABATTAGE ***");
+
+            for j in qualified_players.iter() {
+                println!("Joueur {} :", j);
+                if !inout::ask_cards(&mut self.players[*j].hand, 2) { self.players[*j].state = 'f'; }
+                inout::print_cards(&self.players[*j].hand);
+            }
+
+            let to_ask = self.table.cards_number - self.table.values.len();
+            inout::ask_cards(&mut self.table, to_ask); 
+            // tant qu'il y a de l'argent à distribuer on cherche des gagnants
+            let mut distributed_amount = 0;
+            let mut to_distribute = 0;
+            let mut winners = vec![];
+            let mut winners_combinations = [0; 6];
+
+            let mut player_combination = [0; 6];
+            while distributed_amount < self.pot {
+                winners_combinations[0] = 0;
+                //nbrJoueursQualifies = nombreJoueursQualifies(pjoueur);
+                //pjoueur = joueurQualifieSuivant(pjoueur);
+                for j in qualified_players.iter() {
+                    let mut player_cards = cards::merge_hands(&self.table, &self.players[*j].hand);
+                    inout::print_cards(&player_cards);
+                    combinations::combination_type(&mut player_cards, &mut player_combination);
+                    println!("Player {}:", *j);
+                    inout::print_combination(&player_combination);
+                    if combinations::compare_combinations(&player_combination, &winners_combinations) == 1 {
+                        winners = vec![*j];
+                        // nouvel appel à combination_type probablement inutile…
+                        combinations::combination_type(&mut player_cards, &mut winners_combinations);
+                    } else if combinations::compare_combinations(&player_combination, &winners_combinations) == 2 {
+                        winners.push(*j);
+                    }
+                }
+                winners.sort_by_key(|k| self.players[*k].total_bet);
+                let mut i = 0;
+                while i < winners.len() {
+                    to_distribute = players::available_pot_amount(&self.players, self.players[winners[i]].number as usize) - distributed_amount;
+                    if to_distribute > 0 {
+                        for j in i..winners.len() {
+                            println!("Joueur {} REMPORTE {}", self.players[winners[j]].number, to_distribute / ((winners.len() - i) as u32));
+                            self.players[winners[j]].cash += to_distribute / ((winners.len() - i) as u32);
+                        }
+                        if to_distribute % ((winners.len() - i) as u32) != 0 {
+                            println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
+                            let num = inout::ask_player_number(self.players.len() as u32); 
+                            self.players[num].cash += to_distribute % winners.len() as u32;
+                        }
+                        distributed_amount += to_distribute;
+                    }
+                    self.players[winners[i]].state = 'f';
+                    i+=1;
+                }
+            }
+        }
     }
 
     pub fn next_active_player(&self, starting_with: usize) -> usize {
