@@ -54,17 +54,17 @@ mod test_print {
 }
 
 //TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
-pub fn ask_player_number(players: &Vec<players::Player>) -> usize {
+pub fn ask_player_number(players_count: u32) -> usize {
     let mut input = String::new();
-    let mut number: usize;
+    let mut number: u32;
     loop{
         input.clear();
         io::stdin().read_line(&mut input).expect("failed to read line");
         number = input.trim().parse().expect("Please type a number!");
-        if number < players.len() { break; }
+        if number < players_count { break; }
         else { println!("Please enter a valid player number")}
     }
-    return number;
+    return number as usize;
 }
 
 pub fn ask_action(players: &Vec<players::Player>, player: usize, to_bet: u32, raise_value: u32) -> char {

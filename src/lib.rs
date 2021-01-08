@@ -1,10 +1,14 @@
 use crate::cards;
 use crate::players;
+use crate::inout;
 
 pub struct Game {
     pub players: Vec<players::Player>,
     pub small_blind: u32,
     // hand variables
+    dealer_index: usize,
+    small_blind_index: usize,
+    big_blind_index: usize,
     pub hand_number: u32,
     pub pot: u32,
     pub table: cards::Hand,
@@ -16,9 +20,18 @@ pub struct Game {
 
 impl Game {
     pub fn new(players_count: u32, start_cash: u32, small_blind: u32) -> Game {
+        println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
+        let dealer_index = inout::ask_player_number(players_count);
+        let small_blind_index = if dealer_index + 1 < players_count as usize { dealer_index + 1 } else { 0 };
+        let big_blind_index = if small_blind_index + 1 < players_count as usize { small_blind_index + 1 } else { 0 };
         Game {
             players: players::create_players(players_count, start_cash),
             small_blind,
+
+            dealer_index: dealer_index, 
+            small_blind_index: small_blind_index, 
+            big_blind_index: big_blind_index,
+
             hand_number: 0,
             pot: 0,
             table: cards::Hand::new(5),

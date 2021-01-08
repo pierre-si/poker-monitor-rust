@@ -128,11 +128,6 @@ fn main() {
     let mut current_player: usize;
     // first hand initialisation
     println!("Bienvenue sur Monitor 0.42 !");
-    println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
-    let mut dealer: usize = inout::ask_player_number(&game.players);
-    let mut player_small_blind: usize = game.next_active_player(dealer);
-    let mut player_big_blind: usize = game.next_active_player(player_small_blind);
-    
     // même jeu
     loop {
         game.initialize_hand();
