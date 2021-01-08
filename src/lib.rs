@@ -46,6 +46,29 @@ impl Game {
         self.pot = 0;
         self.table.reset_cards();
         self.round_number = 1;
+
+        if self.players[0].state == 'i' {
+            println!("Vos cartes :");
+            inout::ask_cards(&mut self.players[0].hand, 2);
+        }
+        // lorsqu'il n'y a plus que 2 joueurs en lice (« Heads-up »), le dealer est small blind
+		// il est nécessaire de recalculer psmallBlind au cas où le tour précédent comptait 3 joueurs et s'est achevé par
+		// la défaite du big blind.
+        if self.active_players_count() == 2 {
+            self.small_blind_index = self.next_active_player(self.big_blind_index);
+            self.dealer_index = self.small_blind_index;
+        }
+
+        if self.players[self.small_blind_index].state != 'o' {
+			println!("SMALL BLIND : JOUEUR {}   BET {:5}\n", self.small_blind_index, self.small_blind);
+            self.pot += self.players[self.small_blind_index].make_bet(self.small_blind);
+        }
+        println!("BIG BLIND   : JOUEUR {}   BET {:5}\n", self.big_blind_index, self.small_blind*2);
+		self.pot += self.players[self.big_blind_index].make_bet(self.small_blind*2);
+
+        self.to_bet = self.small_blind*2;
+        self.raise_value = self.small_blind*2;
+        let current_player = self.next_active_player(self.big_blind_index);
     }
     
     pub fn initialize_round(&self) {

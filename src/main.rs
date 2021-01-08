@@ -130,35 +130,9 @@ fn main() {
     println!("Bienvenue sur Monitor 0.42 !");
     // même jeu
     loop {
-        game.initialize_hand();
         // Initialisation du premier tour
         println!("*** Main numéro {} Préparation   ***", game.hand_number);
-        if game.players[0].state == 'i' {
-            println!("Vos cartes :");
-            inout::ask_cards(&mut game.players[0].hand, 2);
-            
-        }
-		// lorsqu'il n'y a plus que 2 joueurs en lice (« Heads-up »), le dealer est small blind
-		// il est nécessaire de recalculer psmallBlind au cas où le tour précédent comptait 3 joueurs et s'est achevé par
-		// la défaite du big blind.
-        if game.active_players_count() == 2 {
-            player_small_blind = game.next_active_player(player_big_blind);
-            dealer = player_small_blind;
-            current_player = dealer;
-        }
-
-        if game.players[player_small_blind].state != 'o' {
-			println!("SMALL BLIND : JOUEUR {}   BET {:5}\n", player_small_blind, game.small_blind);
-            game.pot += game.players[player_small_blind].make_bet(game.small_blind);
-        }
-        
-        println!("BIG BLIND   : JOUEUR {}   BET {:5}\n", player_big_blind, game.small_blind*2);
-		game.pot += game.players[player_big_blind].make_bet(game.small_blind*2);
-
-        game.to_bet = game.small_blind*2;
-        game.raise_value = game.small_blind*2;
-        current_player = game.next_active_player(player_big_blind);
-
+        game.initialize_hand();
         // same hand
         loop{
             println!("\n*** Main numéro {:2}  Tour numéro {} ***", game.hand_number, game.round_number);
