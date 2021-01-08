@@ -48,7 +48,7 @@ fn parse_command(args: &[String]) -> Option<GameSettings> {
     Some(GameSettings { n_players, start_cash, first_blind, blinds_raise_interval})
 }
 
-fn pot_distribution(game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
+fn pot_distribution(mut game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
    let qualified_players = game.qualified_players(); 
 
     if qualified_players.len() == 1 {
@@ -101,7 +101,7 @@ fn pot_distribution(game: lib::Game, mut table: &mut cards::Hand, pot: u32) {
                     }
                     if to_distribute % ((winners.len() - i) as u32) != 0 {
                         println!("Montant non divisible. Qui remporte le reste : {} ?", to_distribute % ((winners.len() - i) as u32));
-                        let num = inout::ask_player_number(&game.players); 
+                        let num = inout::ask_player_number(game.players.len() as u32); 
                         game.players[num].cash += to_distribute % winners.len() as u32;
                     }
                     distributed_amount += to_distribute;
@@ -121,7 +121,7 @@ fn main() {
         Some(settings) => settings,
         None => return,
     };
-    let mut game = lib::Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind);
+    let mut game = lib::Game::new(game_settings.n_players, game_settings.start_cash, game_settings.first_blind, game_settings.blinds_raise_interval);
     // auxiliary variables
     let (mut player_n, mut min_players_count): (u32, u32);
     let mut current_player: usize;
@@ -152,8 +152,7 @@ fn main() {
         }
         //pot_distribution(&mut players, &mut table, pot);
         game.rotate_buttons();
-        if hand_n % game_settings.blinds_raise_interval == 0 { small_blind *= 2; }
-        if players::active_players_count(&players) <= 1 { break; }
+        if game.active_players_count() <= 1 { break; }
     }
     println!("Merci et à bientôt sur Monitor !");
 }

@@ -5,6 +5,7 @@ use crate::inout;
 pub struct Game {
     pub players: Vec<players::Player>,
     pub small_blind: u32,
+    blinds_raise_interval: u32,
     N_CARDS_TO_DEAL: [usize; 4],
     // hand variables
     dealer_index: usize,
@@ -20,7 +21,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(players_count: u32, start_cash: u32, small_blind: u32) -> Game {
+    pub fn new(players_count: u32, start_cash: u32, small_blind: u32, blinds_raise_interval: u32) -> Game {
         println!("Vous êtes le joueur n°0, le dealer a le numéro : ");
         let dealer_index = inout::ask_player_number(players_count);
         let small_blind_index = if dealer_index + 1 < players_count as usize { dealer_index + 1 } else { 0 };
@@ -28,6 +29,7 @@ impl Game {
         Game {
             players: players::create_players(players_count, start_cash),
             small_blind,
+            blinds_raise_interval,
             N_CARDS_TO_DEAL: [0, 3, 1, 1],
 
             dealer_index: dealer_index, 
@@ -45,6 +47,7 @@ impl Game {
 
     pub fn initialize_hand(&self) {
         self.hand_number += 1;
+        if self.hand_number % self.blinds_raise_interval == 0 { self.small_blind *= 2; }
         self.pot = 0;
         self.table.reset_cards();
         self.round_number = 0;
