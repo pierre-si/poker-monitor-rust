@@ -49,6 +49,17 @@ impl Game {
         self.table.reset_cards();
         self.round_number = 0;
 
+        // reset players hands and check cash
+        for player in self.players {
+            player.total_bet = 0;
+            player.hand.reset_cards();
+            if player.cash <= 0 {
+                player.cash = 0;
+                player.state = 'o';
+            } else {
+                player.state = 'i';
+            }
+        }
         if self.players[0].state == 'i' {
             println!("Vos cartes :");
             inout::ask_cards(&mut self.players[0].hand, 2);

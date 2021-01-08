@@ -98,6 +98,8 @@ impl Player {
 
         amount
     }
+
+
 }
 
 pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
@@ -111,20 +113,6 @@ pub fn create_players(number_of_players: u32, start_cash: u32) -> Vec<Player> {
         players.push(Player::new(i, start_cash))
     }
     players
-}
-
-
-pub fn reset_hand(players: &mut Vec<Player>) {
-    for player in players {
-        player.total_bet = 0;
-        player.hand.reset_cards();
-        if player.cash <= 0 {
-            player.cash = 0;
-            player.state = 'o';
-        } else {
-            player.state = 'i';
-        }
-    }
 }
 
 pub fn available_pot_amount(players: &Vec<Player>, initial: usize) -> u32 {
