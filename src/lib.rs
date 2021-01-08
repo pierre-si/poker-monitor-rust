@@ -52,7 +52,7 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        loop { // same game
+        while self.active_players_count() > 1 { // same game
             println!("*** Main numéro {} Préparation   ***", self.hand_number+1);
             let mut current_player: usize;
             current_player = self.initialize_hand();
@@ -78,8 +78,8 @@ impl Game {
                 if self.active_players_count() <= 1 || self.round_number >= 5 { break; } 
             }
             self.distribute_pot();
+            self.check_players();
             self.rotate_buttons();
-            if self.active_players_count() <= 1 { break; }
         }
     }
 
@@ -90,17 +90,6 @@ impl Game {
         self.table.reset_cards();
         self.round_number = 1;
 
-        // reset players hands and check cash
-        for player in &mut self.players {
-            player.total_bet = 0;
-            player.hand.reset_cards();
-            if player.cash <= 0 {
-                player.cash = 0;
-                player.state = 'o';
-            } else {
-                player.state = 'i';
-            }
-        }
         if self.players[0].state == 'i' {
             println!("Vos cartes :");
             inout::ask_cards(&mut self.players[0].hand, 2);
@@ -136,6 +125,20 @@ impl Game {
         self.raise_value = 2*self.small_blind;
         // le premier joueur actif après le dealer commence le tour suivant
         self.next_active_player(self.dealer_index)
+    }
+
+    fn check_players(&mut self) {
+        // reset players' hands and check cash
+        for player in &mut self.players {
+            player.total_bet = 0;
+            player.hand.reset_cards();
+            if player.cash <= 0 {
+                player.cash = 0;
+                player.state = 'o';
+            } else {
+                player.state = 'i';
+            }
+        }
     }
 
     pub fn rotate_buttons(&mut self) {
