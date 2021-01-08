@@ -53,15 +53,17 @@ mod test_print {
     }
 }
 
-//TODO: utiliser get(number) suivi d'un match sur le Optional renvoyé.
-// régler le cas ou ce n'est pas un nombre => panic.
 pub fn ask_player_number(players_count: u32) -> usize {
     let mut input = String::new();
     let mut number: u32;
     loop{
         input.clear();
         io::stdin().read_line(&mut input).expect("failed to read line");
-        number = input.trim().parse().expect("Please type a number!");
+        number = match input.trim().parse() {
+            Ok(n) => n,
+            Err(_) => { println!("Please type a number!"); continue } 
+        };
+
         if number < players_count { break; }
         else { println!("Please enter a valid player number")}
     }
