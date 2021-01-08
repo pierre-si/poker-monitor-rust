@@ -83,7 +83,7 @@ impl Game {
         }
     }
 
-    pub fn initialize_hand(&mut self) -> usize {
+    fn initialize_hand(&mut self) -> usize {
         self.hand_number += 1;
         if self.hand_number % self.blinds_raise_interval == 0 { self.small_blind *= 2; }
         self.pot = 0;
@@ -115,7 +115,7 @@ impl Game {
         self.next_active_player(self.big_blind_index)
     }
     
-    pub fn finalize_round(&mut self) -> usize {
+    fn finalize_round(&mut self) -> usize {
         self.round_number += 1;
         for player in self.players.iter_mut() {
             player.total_bet += player.round_bet;
@@ -141,7 +141,7 @@ impl Game {
         }
     }
 
-    pub fn rotate_buttons(&mut self) {
+    fn rotate_buttons(&mut self) {
         self.dealer_index = self.small_blind_index;
         // ne correspond pas à PokerTH: si celui qui était bigblind meurt il ne devient pas small dans PokerTH
         self.small_blind_index = self.big_blind_index;
@@ -219,7 +219,7 @@ impl Game {
         amount
     }
 
-    pub fn next_active_player(&self, starting_with: usize) -> usize {
+    fn next_active_player(&self, starting_with: usize) -> usize {
         if starting_with >= self.players.len(){
             println!("Appel de next_active_player avec un indice de joueur trop grand !\n");
             std::process::exit(100);
@@ -233,7 +233,7 @@ impl Game {
         return i
     }
 
-    pub fn active_players_count(&self) -> u32 {
+    fn active_players_count(&self) -> u32 {
         let mut number = 0;
         for player in &self.players {
             if player.state == 'i' { number += 1 }
@@ -241,7 +241,7 @@ impl Game {
         number
     }
 
-    pub fn qualified_players(&self) -> Vec<usize> {
+    fn qualified_players(&self) -> Vec<usize> {
         let mut qualified_players = Vec::new();
         for (i, player) in self.players.iter().enumerate() {
             if player.state == 'i' || player.state == 'a' { qualified_players.push(i) }
