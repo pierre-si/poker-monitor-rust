@@ -117,7 +117,7 @@ impl Game {
     
     pub fn finalize_round(&mut self) -> usize {
         self.round_number += 1;
-        for player in &mut self.players {
+        for player in self.players.iter_mut() {
             player.total_bet += player.round_bet;
             player.round_bet = 0;
         }
