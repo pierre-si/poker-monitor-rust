@@ -9,21 +9,21 @@ pub use crate::players::*;
 pub use crate::combinations::*;
 
 pub struct Game {
-    pub players: Vec<players::Player>,
-    pub small_blind: u32,
+    players: Vec<players::Player>,
+    small_blind: u32,
     blinds_raise_interval: u32,
     N_CARDS_TO_DEAL: [usize; 4],
     // hand variables
     dealer_index: usize,
     small_blind_index: usize,
     big_blind_index: usize,
-    pub hand_number: u32,
-    pub pot: u32,
-    pub table: cards::Hand,
+    hand_number: u32,
+    pot: u32,
+    table: cards::Hand,
     // round variables
-    pub round_number: usize,
-    pub to_bet: u32,
-    pub raise_value: u32,
+    round_number: usize,
+    to_bet: u32,
+    raise_value: u32,
 }
 
 impl Game {
